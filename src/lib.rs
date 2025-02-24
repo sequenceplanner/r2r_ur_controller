@@ -62,7 +62,7 @@ impl URControllerServer {
         command: RobotCommand,
     ) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
         let script = generate_script(command, &self.templates).await.expect("msg");
-        println!("{}", script);
+        // println!("{}", script);
         // We do the usual oneshot for the result:
         let (result_tx, result_rx) = oneshot::channel();
 

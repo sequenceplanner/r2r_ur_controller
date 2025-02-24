@@ -1,4 +1,4 @@
-async fn state_publisher(
+pub async fn state_publisher(
     driver_state: Arc<Mutex<DriverState>>,
     joint_publisher: Publisher<sensor_msgs::msg::JointState>,
     measured_publisher: Publisher<ur_script_msgs::msg::Measured>,

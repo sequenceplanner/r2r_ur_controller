@@ -1,2 +1,2 @@
 pub mod structs;
-mod driver;
+pub mod driver;

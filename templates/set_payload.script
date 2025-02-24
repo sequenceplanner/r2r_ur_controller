@@ -1,0 +1,3 @@
+def script():
+  set_target_payload({{ payload }})
+end

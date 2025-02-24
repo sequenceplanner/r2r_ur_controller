@@ -8,10 +8,12 @@ autotests = true
 inherits = "release"
 
 [dependencies]
+r2r = "0.9.4"
 tera = "1.20.0"
 futures = "0.3.31"
 tokio = { version = "1.43.0", features = ["full"] }
 serde_json = "1.0.127"
 serde = { version = "1.0.217", features = ["derive"] }
 tokio-util = { version = "0.7.13", features = ["full"] }
+micro_sp = { git = "https://github.com/endre90/micro_sp", branch = "master" }
 r2r_transforms = { git = "https://github.com/sequenceplanner/r2r_transforms", branch = "master" }

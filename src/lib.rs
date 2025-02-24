@@ -14,6 +14,10 @@ use tokio::time::timeout;
 
 pub mod core;
 pub use core::driver::*;
+
+pub mod ros;
+pub use ros::action_client::*;
+
 // pub
 // use r2r_ur_controller::*;
 
@@ -164,7 +168,7 @@ async fn generate_script(
     println!("ASDFASDFASDFASDF");
     let empty_context = tera::Context::new();
     match templates.render(
-        &format!("{}.script", robot_command.command.to_string()),
+        &format!("{}.script", robot_command.command_type.to_string()),
         match &tera::Context::from_serialize(robot_command.clone()) {
             Ok(context) => context,
             Err(e) => {
@@ -183,7 +187,7 @@ async fn generate_script(
             println!(
                 // NODE_ID,
                 "Rendering the {}.script Tera Template failed with: {}.",
-                robot_command.command,
+                robot_command.command_type,
                 e
             );
             None

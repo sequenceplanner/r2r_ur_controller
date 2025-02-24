@@ -61,36 +61,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 3) Spawn a task that does movej
     let driver_arc = Arc::new(Mutex::new(driver.clone()));
-    let command = RobotCommand {
-        command: core::structs::CommandType::MoveJ,
-        acceleration: 0.5,
-        velocity: 0.5,
-        global_acceleration_scaling: 1.0,
-        global_velocity_scaling: 1.0,
-        use_execution_time: false,
-        execution_time: 0.0,
-        use_blend_radius: false,
-        blend_radius: 0.0,
-        use_joint_positions: true,
-        joint_positions: vec![-1.57, 0.0, 0.0, -1.57, 0.0, 0.0],
-        use_preferred_joint_config: false,
-        preferred_joint_config: vec![],
-        use_payload: false,
-        payload: "".to_string(),
-        baseframe_id: "".to_string(),
-        faceplate_id: "".to_string(),
-        goal_feature_id: "".to_string(),
-        tcp_id: "".to_string(),
-        target_in_base: "".to_string(),
-        set_tcp: false,
-        tcp_in_faceplate: pose_to_string(&TransformStamped::default()),
-    };
+    // let command = RobotCommand {
+    //     command: core::structs::CommandType::MoveJ,
+    //     acceleration: 0.5,
+    //     velocity: 0.5,
+    //     global_acceleration_scaling: 1.0,
+    //     global_velocity_scaling: 1.0,
+    //     use_execution_time: false,
+    //     execution_time: 0.0,
+    //     use_blend_radius: false,
+    //     blend_radius: 0.0,
+    //     use_joint_positions: true,
+    //     joint_positions: vec![-1.57, 0.0, 0.0, -1.57, 0.0, 0.0],
+    //     use_preferred_joint_config: false,
+    //     preferred_joint_config: vec![],
+    //     use_payload: false,
+    //     payload: "".to_string(),
+    //     baseframe_id: "".to_string(),
+    //     faceplate_id: "".to_string(),
+    //     goal_feature_id: "".to_string(),
+    //     tcp_id: "".to_string(),
+    //     target_in_base: "".to_string(),
+    //     set_tcp: false,
+    //     tcp_in_faceplate: pose_to_string(&TransformStamped::default()),
+    // };
 
-    let driver_for_move = driver_arc.clone();
-    let h = tokio::spawn(async move {
-        let drv = driver_for_move.lock().unwrap().clone();
-        drv.execute(command).await
-    });
+    // let driver_for_move = driver_arc.clone();
+    // let h = tokio::spawn(async move {
+    //     let drv = driver_for_move.lock().unwrap().clone();
+    //     drv.execute(command).await
+    // });
 
     // let driver_for_move = driver_arc.clone();
     // match tokio::spawn(async move {

@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum CommandType {
+    UNKNOWN,
     ConnectGripper,
     CloseGripper,
     OpenGripper,
@@ -33,6 +34,7 @@ impl fmt::Display for CommandType {
             CommandType::PlaceVacuum => "place_vacuum",
             CommandType::StartVacuum => "start_vacuum",
             CommandType::StopVacuum => "stop_vacuum",
+            CommandType::UNKNOWN => "unknown",
         };
         write!(f, "{}", s)
     }
@@ -41,7 +43,7 @@ impl fmt::Display for CommandType {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct RobotCommand {
     // MoveJ, Movel, StartVacuum...
-    pub command: CommandType, 
+    pub command_type: String, 
     // If command is 'move_j', joint acceleration of leading axis [rad/s^2].
     // If command is 'move_l', tool acceleration [m/s^2].
     pub acceleration: f64,
@@ -55,14 +57,14 @@ pub struct RobotCommand {
     // execute the motion in the time specified here (in seconds).
     // Time setting has priority over speed and acceleration settings.
     pub use_execution_time: bool,
-    pub execution_time: f32,
+    pub execution_time: f64,
     // Blend radius. If a blend radius is set, the robot arm trajectory
     // will be modified to avoid the robot stopping at the point.
     // However, if the blend region of this move overlaps with the blend
     // radius of previous or following waypoints, this move will be
     // skipped, and an ’Overlapping Blends’ warning message will be generated.
     pub use_blend_radius: bool,
-    pub blend_radius: f32,
+    pub blend_radius: f64,
     // If executing a 'move_j', direct joint positions can be used
     // instead of finding an inverse kinematics solution. Otherwise,
     // the IK solver will calculate the joint positions based on the

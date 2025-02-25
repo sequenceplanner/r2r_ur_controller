@@ -20,6 +20,13 @@ pub enum CommandType {
     StopVacuum
 }
 
+#[derive(Serialize, Deserialize, Clone)]
+pub enum DashboardCommandType {
+    UNKNOWN,
+    Stop,
+    ResetProtectiveStop,
+}
+
 impl fmt::Display for CommandType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = match self {
@@ -35,6 +42,17 @@ impl fmt::Display for CommandType {
             CommandType::StartVacuum => "start_vacuum",
             CommandType::StopVacuum => "stop_vacuum",
             CommandType::UNKNOWN => "unknown",
+        };
+        write!(f, "{}", s)
+    }
+}
+
+impl fmt::Display for DashboardCommandType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
+            DashboardCommandType::Stop => "stop",
+            DashboardCommandType::ResetProtectiveStop => "reset_protective_stop",
+            DashboardCommandType::UNKNOWN => "unknown",
         };
         write!(f, "{}", s)
     }

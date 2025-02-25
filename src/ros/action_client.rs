@@ -7,7 +7,7 @@ use r2r::ur_script_msgs::action::ExecuteScript;
 use r2r_transforms::{lookup_transform_with_root, TransformStamped};
 use tokio::sync::{mpsc, oneshot};
 
-use crate::core::structs::{transform_to_string, CommandType, Payload};
+// use crate::core::structs::{transform_to_string, CommandType, Payload};
 use crate::*;
 
 pub const UR_ACTION_SERVER_TICKER_RATE: u64 = 200;
@@ -23,10 +23,14 @@ pub async fn action_client(
     transform_buffer: &Arc<Mutex<HashMap<String, TransformStamped>>>,
     templates: &tera::Tera,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    // let client = arc_node
+    //     .lock()
+    //     .unwrap()
+    //     .create_action_client::<ExecuteScript::Action>(&format!("{robot_name}_ur_script"))?;
     let client = arc_node
         .lock()
         .unwrap()
-        .create_action_client::<ExecuteScript::Action>(&format!("{robot_name}_ur_script"))?;
+        .create_action_client::<ExecuteScript::Action>(&format!("ur_script"))?;
     let waiting_for_server = r2r::Node::is_available(&client)?;
     let mut timer =
         arc_node

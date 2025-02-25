@@ -79,16 +79,16 @@ pub struct RobotCommand {
     pub use_payload: bool,
     pub payload: String,
     // base_link if simulation, base if real or ursim
-    pub baseframe_id: String, 
+    // pub baseframe_id: String, 
     // usually tool0, but could be rsp if that is the setup
-    pub faceplate_id: String,
+    // pub faceplate_id: String,
     // Name of the frame to go to.
-    pub goal_feature_id: String,
+    // pub goal_feature_id: String,
     // Name of the TCP to be used to go to the goal feature frame.
-    pub tcp_id: String,
+    // pub tcp_id: String,
     // Calculated transforms with the lookup
     pub target_in_base: String,  // use pose_to_string
-    pub set_tcp: bool, // if false, no tcp will be set (will remain 0.0.0.0.0.0.0)
+    // pub set_tcp: bool, // if false, no tcp will be set (will remain 0.0.0.0.0.0.0)
     pub tcp_in_faceplate: String, // use pose_to_string
 }
 
@@ -129,22 +129,31 @@ impl Default for Payload {
     }
 }
 
-pub fn payload_to_string(p: Payload) -> String {
-    format!(
-        "{},[{},{},{}],[{},{},{},{},{},{}]",
-        p.mass, p.cog_x, p.cog_y, p.cog_z, p.ixx, p.iyy, p.izz, p.ixy, p.ixz, p.iyz
-    )
+impl Payload {
+    pub fn to_string(&self) -> String {
+        format!(
+            "{},[{},{},{}],[{},{},{},{},{},{}]",
+            self.mass, self.cog_x, self.cog_y, self.cog_z, self.ixx, self.iyy, self.izz, self.ixy, self.ixz, self.iyz
+        ) 
+    } 
 }
 
+// pub fn payload_to_string(p: Payload) -> String {
+//     format!(
+//         "{},[{},{},{}],[{},{},{},{},{},{}]",
+//         p.mass, p.cog_x, p.cog_y, p.cog_z, p.ixx, p.iyy, p.izz, p.ixy, p.ixz, p.iyz
+//     )
+// }
 
-fn joint_vector_to_string(j: &[f64]) -> String {
-    match j.len() == 6 {
-        true => format!("[{},{},{},{},{},{}]", j[0], j[1], j[2], j[3], j[4], j[5]),
-        false => "".to_string(),
-    }
-}
 
-pub fn pose_to_string(tf_stamped: &TransformStamped) -> String {
+// fn joint_vector_to_string(j: &[f64]) -> String {
+//     match j.len() == 6 {
+//         true => format!("[{},{},{},{},{},{}]", j[0], j[1], j[2], j[3], j[4], j[5]),
+//         false => "".to_string(),
+//     }
+// }
+
+pub fn transform_to_string(tf_stamped: &TransformStamped) -> String {
     let x = tf_stamped.transform.translation.x;
     let y = tf_stamped.transform.translation.y;
     let z = tf_stamped.transform.translation.z;

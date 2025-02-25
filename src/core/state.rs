@@ -5,11 +5,15 @@ pub fn generate_robot_interface_state(robot_name: &str) -> State {
 
     let request_trigger = bv!(&&format!("{}_request_trigger", robot_name));
     let request_state = v!(&&format!("{}_request_state", robot_name));
+    let dashboard_request_trigger = bv!(&&format!("{}_dashboard_request_trigger", robot_name));
+    let dashboard_request_state = v!(&&format!("{}_dashboard_request_state", robot_name));
     let total_fail_counter = iv!(&&format!("{}_total_fail_counter", robot_name));
     let subsequent_fail_counter = iv!(&&format!("{}_subsequent_fail_counter", robot_name));
 
     let state = state.add(assign!(request_trigger, false.to_spvalue()));
     let state = state.add(assign!(request_state, "initial".to_spvalue()));
+    let state = state.add(assign!(dashboard_request_trigger, false.to_spvalue()));
+    let state = state.add(assign!(dashboard_request_state, "initial".to_spvalue()));
     let state = state.add(assign!(total_fail_counter, 0.to_spvalue()));
     let state = state.add(assign!(subsequent_fail_counter, 0.to_spvalue()));
 

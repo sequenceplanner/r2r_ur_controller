@@ -21,7 +21,7 @@ pub async fn dashboard_client(
     let client = arc_node
         .lock()
         .unwrap()
-        .create_client::<DBCommand::Service>(&format!("dashboard_server"), QosProfile::default())?;
+        .create_client::<DBCommand::Service>(&format!("dashboard_command"), QosProfile::default())?;
     let waiting_for_server = r2r::Node::is_available(&client)?;
     let mut timer =
         arc_node

@@ -195,3 +195,29 @@ pub fn transform_to_string(tf_stamped: &TransformStamped) -> String {
 
     format!("p[{},{},{},{},{},{}]", x, y, z, rx, ry, rz)
 }
+
+pub struct URDFParameters {
+    pub name: String,
+    pub ur_type: String,
+    pub safety_limits: bool,
+    pub safety_pos_margin: f64,
+    pub safety_k_position: f64,
+    pub description_file: String,
+    pub rviz_config_file: String,
+    pub tf_prefix: String,
+}
+
+impl Default for URDFParameters {
+    fn default() -> Self {
+        URDFParameters {
+            name: "robot_1".to_string(),
+            ur_type: "ur10e".to_string(),
+            safety_limits: true,
+            safety_pos_margin: 0.15,
+            safety_k_position: 20.0,
+            description_file: "TODO!".to_string(),
+            rviz_config_file: "TODO!".to_string(),
+            tf_prefix: "".to_string()
+        }
+    }
+}

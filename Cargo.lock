@@ -330,6 +330,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "crossbeam"
+version = "0.8.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1137cd7e7fc0fb5d3c5a8678be38ec56e819125d8d7907411fe24ccb943faca8"
+dependencies = [
+ "crossbeam-channel",
+ "crossbeam-deque",
+ "crossbeam-epoch",
+ "crossbeam-queue",
+ "crossbeam-utils",
+]
+
+[[package]]
+name = "crossbeam-channel"
+version = "0.5.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "06ba6d68e24814cb8de6bb986db8222d3a027d15872cabc0d18817bc3c0e4471"
+dependencies = [
+ "crossbeam-utils",
+]
+
+[[package]]
 name = "crossbeam-deque"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -344,6 +366,15 @@ name = "crossbeam-epoch"
 version = "0.9.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b82ac4a3c2ca9c3460964f020e1402edd5753411d7737aa39c3714ad1b5420e"
+dependencies = [
+ "crossbeam-utils",
+]
+
+[[package]]
+name = "crossbeam-queue"
+version = "0.3.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0f58bbc28f91df819d0aa2a2c00cd19754769c2fad90579b3592b1c9ba7a3115"
 dependencies = [
  "crossbeam-utils",
 ]
@@ -424,6 +455,12 @@ dependencies = [
  "libc",
  "windows-sys 0.59.0",
 ]
+
+[[package]]
+name = "fastrand"
+version = "2.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 
 [[package]]
 name = "force-send-sync"
@@ -1293,6 +1330,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "r2r_interactive_markers"
+version = "0.1.0"
+source = "git+https://github.com/sequenceplanner/r2r_interactive_markers?tag=v0.0.1#00ae800e993af0115393a47b58f2e1abb7e7ca1b"
+dependencies = [
+ "futures",
+ "r2r",
+ "tokio",
+]
+
+[[package]]
 name = "r2r_macros"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1334,6 +1381,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "r2r_regular_markers"
+version = "0.0.1"
+source = "git+https://github.com/sequenceplanner/r2r_regular_markers?tag=v0.0.2#a5193831b48b42d8a25101a8ff859a07907059b7"
+dependencies = [
+ "futures",
+ "r2r",
+ "tokio",
+]
+
+[[package]]
+name = "r2r_teaching_markers"
+version = "0.0.1"
+source = "git+https://github.com/sequenceplanner/r2r_teaching_markers?branch=master#696e14af1572ca00444e052c63186edaf8416fc0"
+dependencies = [
+ "crossbeam",
+ "r2r",
+ "r2r_interactive_markers",
+ "r2r_regular_markers",
+ "tokio",
+]
+
+[[package]]
 name = "r2r_transforms"
 version = "0.1.0"
 source = "git+https://github.com/sequenceplanner/r2r_transforms?branch=master#f66adfb526e70cd4f553c2d4a7c1a67b82c7777a"
@@ -1359,9 +1428,11 @@ dependencies = [
  "k",
  "micro_sp",
  "r2r",
+ "r2r_teaching_markers",
  "r2r_transforms",
  "serde",
  "serde_json",
+ "tempfile",
  "tera",
  "tokio",
  "tokio-util",
@@ -1712,6 +1783,20 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "tempfile"
+version = "3.17.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22e5a0acb1f3f55f65cc4a866c361b2fb2a0ff6366785ae6fbb5f85df07ba230"
+dependencies = [
+ "cfg-if",
+ "fastrand",
+ "getrandom 0.3.1",
+ "once_cell",
+ "rustix",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]

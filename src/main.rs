@@ -64,10 +64,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .collect::<Vec<String>>();
     if template_names.len() == 0 {
         r2r::log_error!(NODE_ID, "Couldn't find any Tera templates.");
+    } else {
+        r2r::log_info!(NODE_ID, "Found templates.");
     }
-    for template in &template_names {
-        r2r::log_info!(NODE_ID, "Found template: {:?}", template);
-    }
+    // for template in &template_names {
+    //     r2r::log_info!(NODE_ID, "Found template: {:?}", template);
+    // }
 
     let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
     let transform_buffer = RosSpaceTreeServer::new("buffer", &arc_node_clone);
@@ -101,6 +103,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
     let tx_clone = tx.clone();
     tokio::task::spawn(async move {
+        joint_subscriber(
+            &robot_name,
+            arc_node_clone,
+            tx_clone,
+        )
+        .await
+        .unwrap()
+    });
+
+    let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
+    let tx_clone = tx.clone();
+    tokio::task::spawn(async move {
         action_client(
             &robot_name,
             arc_node_clone,
@@ -120,24 +134,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .unwrap()
     });
 
-    // Spawn a Tokio task that calls start_rsp
     tokio::task::spawn(async move {
-        robot_state_publisher(&urdf).await.unwrap() 
-        // {
-        //     Ok(handle) => {
-        //         // Now we have the JoinHandle for the child future
-        //         println!("spawned robot_state_publisher, waiting for it to exit...");
-
-        //         // If you actually want to wait for it:
-        //         if let Err(e) = handle.await {
-        //             eprintln!("robot_state_publisher task panicked: {:?}", e);
-        //         }
-        //     }
-        //     Err(e) => {
-        //         eprintln!("Failed to start robot_state_publisher: {}", e);
-        //     }
-        // }
+        ur_script_driver(Some("172.17.0.1".to_string()))
+            .await
+            .unwrap()
     });
+
+    tokio::task::spawn(async move { robot_state_publisher(&urdf).await.unwrap() });
 
     let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
     let handle = std::thread::spawn(move || loop {

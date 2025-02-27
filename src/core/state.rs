@@ -28,6 +28,7 @@ pub fn generate_robot_interface_state(robot_name: &str) -> State {
     let blend_radius = fv!(&&format!("{}_blend_radius", robot_name));
     let use_joint_positions = bv!(&&format!("{}_use_joint_positions", robot_name));
     let joint_positions = av!(&&format!("{}_joint_positions", robot_name));
+    let joint_states = av!(&&format!("{}_joint_states", robot_name));
     let use_preferred_joint_config = bv!(&&format!("{}_use_preferred_joint_config", robot_name));
     let preferred_joint_config = av!(&&format!("{}_preferred_joint_config", robot_name));
     let use_payload = bv!(&&format!("{}_use_payload", robot_name));
@@ -50,6 +51,7 @@ pub fn generate_robot_interface_state(robot_name: &str) -> State {
     let state = state.add(assign!(blend_radius, SPValue::UNKNOWN));
     let state = state.add(assign!(use_joint_positions, SPValue::UNKNOWN));
     let state = state.add(assign!(joint_positions, SPValue::UNKNOWN));
+    let state = state.add(assign!(joint_states, SPValue::UNKNOWN));
     let state = state.add(assign!(use_preferred_joint_config, SPValue::UNKNOWN));
     let state = state.add(assign!(preferred_joint_config, SPValue::UNKNOWN));
     let state = state.add(assign!(use_payload, SPValue::UNKNOWN));

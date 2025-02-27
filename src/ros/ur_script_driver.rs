@@ -2,25 +2,24 @@ use std::error::Error;
 use tokio::process::Command;
 use tokio::task::JoinHandle;
 
-pub async fn robot_state_publisher(urdf: &str) -> Result<JoinHandle<()>, Box<dyn Error>> {
-    let urdf_owned = urdf.to_string();
+pub async fn ur_script_driver(override_host_address: Option<String>) -> Result<JoinHandle<()>, Box<dyn Error>> {
     let child_future = async move {
         let mut child = Command::new("ros2")
             .arg("run")
-            .arg("robot_state_publisher")
-            .arg("robot_state_publisher")
+            .arg("ur_script_driver")
+            .arg("ur_script_driver")
             .arg("--ros-args")
             .arg("-p")
-            .arg(format!("robot_description:={}", urdf_owned))
+            .arg(format!("override_host_address:={}", override_host_address.unwrap_or("".to_string())))
             .spawn()
-            .expect("Failed to spawn robot_state_publisher process");
+            .expect("Failed to spawn ur_script_driver process");
 
         match child.wait().await {
             Ok(status) => {
                 if !status.success() {
-                    eprintln!("robot_state_publisher exited with code {:?}", status.code());
+                    eprintln!("ur_script_driver exited with code {:?}", status.code());
                 } else {
-                    println!("robot_state_publisher exited successfully");
+                    println!("ur_script_driver exited successfully");
                 }
             }
             Err(e) => {

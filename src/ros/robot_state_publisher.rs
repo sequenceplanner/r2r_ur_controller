@@ -2,8 +2,9 @@ use std::error::Error;
 use tokio::process::Command;
 use tokio::task::JoinHandle;
 
-pub async fn robot_state_publisher(urdf: &str) -> Result<JoinHandle<()>, Box<dyn Error>> {
+pub async fn robot_state_publisher(urdf: &str, namespace: &str) -> Result<JoinHandle<()>, Box<dyn Error>> {
     let urdf_owned = urdf.to_string();
+    let namespace_owned = namespace.to_string();
     let child_future = async move {
         let mut child = Command::new("ros2")
             .arg("run")
@@ -12,6 +13,7 @@ pub async fn robot_state_publisher(urdf: &str) -> Result<JoinHandle<()>, Box<dyn
             .arg("--ros-args")
             .arg("-p")
             .arg(format!("robot_description:={}", urdf_owned))
+            .arg(format!("namespace:={}", namespace_owned))
             .spawn()
             .expect("Failed to spawn robot_state_publisher process");
 

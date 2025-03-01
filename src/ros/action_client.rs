@@ -13,7 +13,8 @@ use crate::*;
 pub const UR_ACTION_SERVER_TICKER_RATE: u64 = 200;
 pub static SAFE_HOME_JOINT_STATE: [f64; 6] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
 pub static DEFAULT_BASEFRAME_ID: &'static str = "base"; // base_link if simulation, base if real or ursim
-pub static DEFAULT_FACEPLATE_ID: &'static str = "tool0";
+pub static DEFAULT_FACEPLATE_ID: &'static str = "flange";
+pub static DEFAULT_TCP_ID: &'static str = "tool0";
 pub static DEFAULT_ROOT_FRAME_ID: &'static str = "world";
 
 pub async fn action_client(

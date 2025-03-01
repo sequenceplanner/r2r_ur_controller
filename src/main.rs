@@ -29,7 +29,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let mut params = URDFParameters::default();
 
-    params.description_file = urdf_path; //format!("{}/src/description/urdf/ur.urdf.xacro", manifest_dir);
+    params.description_file = urdf_path.clone(); //format!("{}/src/description/urdf/ur.urdf.xacro", manifest_dir);
     let urdf = match convert_xacro_to_urdf(params) {
         Some(urdf) => urdf,
         None => panic!("Failed to parse urdf."),
@@ -92,7 +92,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
     b_in_world.parent_frame_id = "world".to_string();
     b_in_world.transform.translation.y = 0.6;
 
+    let mut ghost_base_link_in_base = TransformStamped::default();
+    ghost_base_link_in_base.active = false;
+    ghost_base_link_in_base.child_frame_id = "ghost_base_link".to_string();
+    ghost_base_link_in_base.parent_frame_id = "world".to_string();
+
     transform_buffer.insert_transform("base", base_in_world);
+    transform_buffer.insert_transform("ghost_base_link", ghost_base_link_in_base);
     transform_buffer.insert_transform("a", a_in_world);
     transform_buffer.insert_transform("b", b_in_world);
     transform_buffer.apply_changes();
@@ -114,13 +120,30 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
     let tx_clone = tx.clone();
+    let global_buffer = transform_buffer.global_buffer.clone();
     tokio::task::spawn(async move {
         action_client(
             &robot_name,
             arc_node_clone,
             tx_clone,
-            &transform_buffer.global_buffer,
+            &global_buffer,
             &templates,
+        )
+        .await
+        .unwrap()
+    });
+
+    let global_buffer = transform_buffer.global_buffer.clone();
+    let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
+    let tx_clone = tx.clone();
+    let urdf_clone = urdf.clone();
+    tokio::task::spawn(async move {
+        control_ghost(
+            robot_name.to_string(),
+            urdf_clone,
+            arc_node_clone,
+            tx_clone,
+            &global_buffer,
         )
         .await
         .unwrap()
@@ -140,7 +163,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .unwrap()
     });
 
-    tokio::task::spawn(async move { robot_state_publisher(&urdf).await.unwrap() });
+    tokio::task::spawn(async move { robot_state_publisher(&urdf, "").await.unwrap() });
+
+    let mut ghost_params = URDFParameters::default();
+    ghost_params.tf_prefix = "ghost_".to_string();
+
+    ghost_params.description_file = urdf_path; //format!("{}/src/description/urdf/ur.urdf.xacro", manifest_dir);
+    let ghost_urdf = match convert_xacro_to_urdf(ghost_params) {
+        Some(urdf) => urdf,
+        None => panic!("Failed to parse urdf."),
+    };
+
+    tokio::task::spawn(async move { robot_state_publisher(&ghost_urdf, "ghost").await.unwrap() });
 
     let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
     let handle = std::thread::spawn(move || loop {

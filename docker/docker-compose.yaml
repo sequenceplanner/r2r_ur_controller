@@ -1,0 +1,29 @@
+services:
+  ros_kasm_service:
+    build:
+      context: .
+      dockerfile: Dockerfile # Specify our custom Dockerfile
+    container_name: ur_ros_rviz
+    ports:
+      # KasmVNC typically uses HTTPS on port 6901 by default
+      - "6901:6901"
+    shm_size: '2gb' # Recommended: Increase shared memory for better graphical performance with RViz
+    # environment:
+      # Set the password for the VNC web interface using Kasm's variable
+      # - VNC_PW=your_kasm_password  # <<< CHANGE THIS TO A SECURE PASSWORD!
+
+      # Optional: Pass arguments to Kasm's internal startup, e.g., for resolution
+      # Check KasmVNC documentation for available options like --screen
+      # Example: - KASM_TARGET_ARGS=--screen 0 1920x1080x24
+
+    volumes:
+      # Mount your local ROS 2 workspace into the kasm-user's home directory
+      # Create './ros2_ws' locally first or adjust the path as needed.
+      - ./ros2_ws:/home/kasm-user/ros2_ws
+
+      # You can add more volume mounts here if needed
+
+    restart: unless-stopped # Automatically restart the container unless manually stopped
+
+    # Note: You usually don't need to set 'user:' here. Kasm's internal startup
+    # scripts handle running the desktop session as 'kasm-user' (1000:1000).

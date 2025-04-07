@@ -23,7 +23,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     path.push("src/ur_description/urdf/ur.urdf.xacro");
 
-    println!("{:?}", path);
+    // println!("{:?}", path);
 
     let urdf_path = path.to_string_lossy().to_string();
 
@@ -95,7 +95,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let mut ghost_base_link_in_base = TransformStamped::default();
     ghost_base_link_in_base.active = false;
     ghost_base_link_in_base.child_frame_id = "ghost_base_link".to_string();
-    ghost_base_link_in_base.parent_frame_id = "world".to_string();
+    ghost_base_link_in_base.parent_frame_id = "base".to_string();
 
     transform_buffer.insert_transform("base", base_in_world);
     transform_buffer.insert_transform("ghost_base_link", ghost_base_link_in_base);
@@ -133,21 +133,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .unwrap()
     });
 
-    let global_buffer = transform_buffer.global_buffer.clone();
-    let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
-    let tx_clone = tx.clone();
-    let urdf_clone = urdf.clone();
-    tokio::task::spawn(async move {
-        control_ghost(
-            robot_name.to_string(),
-            urdf_clone,
-            arc_node_clone,
-            tx_clone,
-            &global_buffer,
-        )
-        .await
-        .unwrap()
-    });
+    // let global_buffer = transform_buffer.global_buffer.clone();
+    // let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
+    // let tx_clone = tx.clone();
+    // let urdf_clone = urdf.clone();
+    // tokio::task::spawn(async move {
+    //     control_ghost(
+    //         robot_name.to_string(),
+    //         urdf_clone,
+    //         arc_node_clone,
+    //         tx_clone,
+    //         &global_buffer,
+    //     )
+    //     .await
+    //     .unwrap()
+    // });
 
     let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
     let tx_clone = tx.clone();
@@ -157,24 +157,30 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .unwrap()
     });
 
+    // tokio::task::spawn(async move {
+    //     ur_script_driver(Some("172.17.0.1".to_string()))
+    //         .await
+    //         .unwrap()
+    // });
+
     tokio::task::spawn(async move {
-        ur_script_driver(Some("172.17.0.1".to_string()))
+        ur_script_driver(Some("192.168.1.31".to_string()), None)
             .await
             .unwrap()
     });
 
     tokio::task::spawn(async move { robot_state_publisher(&urdf, "").await.unwrap() });
 
-    let mut ghost_params = URDFParameters::default();
-    ghost_params.tf_prefix = "ghost_".to_string();
+    // let mut ghost_params = URDFParameters::default();
+    // ghost_params.tf_prefix = "ghost_".to_string();
 
-    ghost_params.description_file = urdf_path; //format!("{}/src/description/urdf/ur.urdf.xacro", manifest_dir);
-    let ghost_urdf = match convert_xacro_to_urdf(ghost_params) {
-        Some(urdf) => urdf,
-        None => panic!("Failed to parse urdf."),
-    };
+    // ghost_params.description_file = urdf_path; //format!("{}/src/description/urdf/ur.urdf.xacro", manifest_dir);
+    // let ghost_urdf = match convert_xacro_to_urdf(ghost_params) {
+    //     Some(urdf) => urdf,
+    //     None => panic!("Failed to parse urdf."),
+    // };
 
-    tokio::task::spawn(async move { robot_state_publisher(&ghost_urdf, "ghost").await.unwrap() });
+    // tokio::task::spawn(async move { robot_state_publisher(&ghost_urdf, "ghost_").await.unwrap() });
 
     let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
     let handle = std::thread::spawn(move || loop {

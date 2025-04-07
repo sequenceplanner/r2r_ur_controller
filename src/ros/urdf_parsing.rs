@@ -11,7 +11,7 @@ pub fn convert_xacro_to_urdf(args: URDFParameters) -> Option<String> {
         .arg(format!("safety_k_position:={}", args.safety_k_position))
         .arg(format!("name:={}", args.name))
         .arg(format!("ur_type:={}", args.ur_type))
-        .arg(format!("tf_prefix:={}", args.tf_prefix))
+        .arg(format!("prefix:={}", args.tf_prefix))
         .stdout(Stdio::piped())
         .output().expect("Failed to generate URDF with Xacro");
 
@@ -24,6 +24,7 @@ pub fn convert_xacro_to_urdf(args: URDFParameters) -> Option<String> {
     // Convert stdout to a string, which should be the rendered URDF
     let robot_description = String::from_utf8_lossy(&output.stdout).into_owned();
     println!("Generated robot description, successfull.");
+    // println!("{:?}", robot_description);
     Some(robot_description)
 
 }

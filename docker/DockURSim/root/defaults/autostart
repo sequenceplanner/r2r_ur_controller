@@ -1,0 +1,8 @@
+# Start sim
+/config/ursim/start-ursim.sh $ROBOT_MODEL &
+
+# For debugging.
+xterm &
+
+# repeatedly try to turn the robot on...
+bash -c 'for i in {0..9}; do sleep 2 && cat <(echo "brake release") <(sleep 1) | nc localhost 29999 -q 1 -w 1; done'

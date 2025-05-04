@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use futures::stream::StreamExt;
@@ -33,14 +32,7 @@ pub async fn action_client(
         .unwrap()
         .create_action_client::<ExecuteScript::Action>(&format!("ur_script"))?;
     let waiting_for_server = r2r::Node::is_available(&client)?;
-    let mut timer =
-        arc_node
-            .lock()
-            .unwrap()
-            .create_wall_timer(std::time::Duration::from_millis(
-                UR_ACTION_SERVER_TICKER_RATE,
-            ))?;
-
+    
     r2r::log_warn!(
         &format!("{robot_name}_action_client"),
         "Waiting for the {robot_name} control action server..."
@@ -51,6 +43,14 @@ pub async fn action_client(
         &format!("{robot_name}_action_client"),
         "Robot {robot_name} control action server available."
     );
+
+    let mut timer =
+        arc_node
+            .lock()
+            .unwrap()
+            .create_wall_timer(std::time::Duration::from_millis(
+                UR_ACTION_SERVER_TICKER_RATE,
+            ))?;
 
     'scan: loop {
         let (response_tx, response_rx) = oneshot::channel();
@@ -205,7 +205,7 @@ pub async fn action_client(
                     &format!("{robot_name}_tcp_id"),
                 );
 
-                let root_frame_id = state.get_string_or_value(
+                let _root_frame_id = state.get_string_or_value(
                     &format!("{robot_name}_action_client"),
                     &format!("{robot_name}_root_frame_id"),
                     DEFAULT_ROOT_FRAME_ID.to_string(),

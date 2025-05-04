@@ -10,6 +10,7 @@ inherits = "release"
 [dependencies]
 r2r = "0.9.4"
 k = "0.32.0"
+log = "0.4.22"
 tera = "1.20.0"
 urdf-rs = "0.9.0"
 tempfile = "3.17.1"

@@ -1,6 +1,6 @@
 use r2r::sensor_msgs::msg::JointState;
 use std::sync::{Arc, Mutex};
-use tokio::sync::{mpsc, oneshot};
+use tokio::sync::mpsc;
 
 use futures::StreamExt;
 use micro_sp::ToSPValue;

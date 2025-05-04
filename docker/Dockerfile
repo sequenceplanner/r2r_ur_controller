@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     pkg-config \
     libssl-dev \
+    libclang-dev \
     xterm 
 
 RUN locale-gen en_US en_US.UTF-8
@@ -51,8 +52,42 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --de
 # Source cargo env automatically for all interactive bash sessions
 RUN echo "source $CARGO_HOME/env" >> /etc/bash.bashrc
 
+SHELL ["/bin/bash", "-c"]
+
 # --- Add kasm-user to sudoers (optional, for convenience within the desktop session) ---
 # The default user in Kasm sessions is 'kasm-user' (UID/GID 1000)
 # This allows running sudo commands inside the container without a password prompt
 RUN echo "kasm-user ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/kasm-user && \
     chmod 0440 /etc/sudoers.d/kasm-user
+
+# Add workspace sourcing to the kasm-user's bashrc for interactive shells
+RUN echo "source /home/kasm-user/ros2_ws/install/setup.bash" >> /home/kasm-user/.bashrc && \
+    chown 1000:1000 /home/kasm-user/.bashrc
+
+# Add workspace sourcing to the kasm-user's bashrc for interactive shells
+RUN echo "source /opt/ros/jazzy/setup.bash" >> /home/kasm-user/.bashrc && \
+    chown 1000:1000 /home/kasm-user/.bashrc
+
+# Set working directory
+WORKDIR /usr/local/src
+
+# Clone the photoneo repository
+RUN git clone https://github.com/sequenceplanner/r2r_ur_controller.git
+
+RUN . /opt/ros/jazzy/setup.bash
+
+# Change to the correct path for the Rust project INSIDE the ALREADY CLONED repo
+WORKDIR /usr/local/src/r2r_ur_controller/
+# Build the Rust application
+RUN source /opt/ros/jazzy/setup.bash && \
+    echo "--- Building Rust crate ---" && \
+    cargo build --release
+
+# Reset WORKDIR back to root
+WORKDIR /
+
+# Start bash script to launch everything
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
+CMD ["/start.sh"]

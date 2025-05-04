@@ -1,5 +1,4 @@
 use micro_sp::*;
-use r2r_transforms::*;
 use r2r_ur_controller::*;
 use std::path::PathBuf;
 
@@ -126,7 +125,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
             &robot_name,
             arc_node_clone,
             tx_clone,
-            &global_buffer,
             &templates,
         )
         .await

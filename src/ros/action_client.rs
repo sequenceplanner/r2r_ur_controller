@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use futures::stream::StreamExt;
 use micro_sp::*;
 use r2r::ur_script_msgs::action::ExecuteScript;
-use r2r_transforms::{lookup_transform_with_root, TransformStamped};
+// use r2r_transforms::{lookup_transform_with_root, TransformStamped};
 use tokio::sync::{mpsc, oneshot};
 
 // use crate::core::structs::{transform_to_string, CommandType, Payload};
@@ -21,7 +21,7 @@ pub async fn action_client(
     robot_name: &str,
     arc_node: Arc<Mutex<r2r::Node>>,
     state_mgmt: mpsc::Sender<StateManagement>, // instead of &Arc<Mutex<State>>
-    transform_buffer: &Arc<Mutex<HashMap<String, TransformStamped>>>,
+    // transform_buffer: &Arc<Mutex<HashMap<String, TransformStamped>>>,
     templates: &tera::Tera,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // let client = arc_node
@@ -59,325 +59,184 @@ pub async fn action_client(
             .await?;
         let state = response_rx.await?;
 
-        let request_trigger = match state.get_value(&format!("{robot_name}_request_trigger")) {
-            micro_sp::SPValue::Bool(value) => value,
-            _ => {
-                r2r::log_error!(
-                    &format!("{robot_name}_action_client"),
-                    "Couldn't get {} from the shared state.",
-                    &format!("{robot_name}_request_trigger")
-                );
-                false
-            }
-        };
-        let mut request_state = match state.get_value(&format!("{robot_name}_request_state")) {
-            micro_sp::SPValue::String(value) => value,
-            _ => {
-                r2r::log_error!(
-                    &format!("{robot_name}_action_client"),
-                    "Couldn't get {} from the shared state.",
-                    &format!("{robot_name}_request_state")
-                );
-                "unknown".to_string()
-            }
-        };
+        let request_trigger = state.get_bool_or_default_to_false(
+            &format!("{robot_name}_action_client"),
+            &format!("{robot_name}_request_trigger"),
+        );
+
+        let mut request_state = state.get_string_or_default_to_unknown(
+            &format!("{robot_name}_action_client"),
+            &format!("{robot_name}_request_state"),
+        );
 
         if request_trigger {
             if request_state == ActionRequestState::Initial.to_string() {
-                let command_type = match state.get_value(&format!("{robot_name}_command_type")) {
-                    micro_sp::SPValue::String(value) => value,
-                    _ => {
-                        r2r::log_error!(
-                            &format!("{robot_name}_action_client"),
-                            "Couldn't get {} from the shared state.",
-                            &format!("{robot_name}_command_type")
-                        );
-                        CommandType::UNKNOWN.to_string()
-                    }
-                };
+                let command_type = state.get_string_or_default_to_unknown(
+                    &format!("{robot_name}_action_client"),
+                    &format!("{robot_name}_command_type"),
+                );
 
-                let accelleration = match state.get_value(&format!("{robot_name}_accelleration")) {
-                    micro_sp::SPValue::Float64(value) => value.into_inner(),
-                    _ => {
-                        r2r::log_error!(
-                            &format!("{robot_name}_action_client"),
-                            "Couldn't get {} from the shared state.",
-                            &format!("{robot_name}_accelleration")
-                        );
-                        0.0
-                    }
-                };
+                let accelleration = state.get_float_or_default_to_zero(
+                    &format!("{robot_name}_action_client"),
+                    &format!("{robot_name}_accelleration"),
+                );
 
-                let velocity = match state.get_value(&format!("{robot_name}_velocity")) {
-                    micro_sp::SPValue::Float64(value) => value.into_inner(),
-                    _ => {
-                        r2r::log_error!(
-                            &format!("{robot_name}_action_client"),
-                            "Couldn't get {} from the shared state.",
-                            &format!("{robot_name}_velocity")
-                        );
-                        0.0
-                    }
-                };
+                let velocity = state.get_float_or_default_to_zero(
+                    &format!("{robot_name}_action_client"),
+                    &format!("{robot_name}_velocity"),
+                );
 
-                let global_acceleration_scaling =
-                    match state.get_value(&format!("{robot_name}_global_acceleration_scaling")) {
-                        micro_sp::SPValue::Float64(value) => value.into_inner(),
-                        _ => {
-                            r2r::log_error!(
-                                &format!("{robot_name}_action_client"),
-                                "Couldn't get {} from the shared state.",
-                                &format!("{robot_name}_global_acceleration_scaling")
-                            );
-                            0.0
-                        }
+                let global_acceleration_scaling = state.get_float_or_default_to_zero(
+                    &format!("{robot_name}_action_client"),
+                    &format!("{robot_name}_global_acceleration_scaling"),
+                );
+
+                let global_velocity_scaling = state.get_float_or_default_to_zero(
+                    &format!("{robot_name}_action_client"),
+                    &format!("{robot_name}_global_velocity_scaling"),
+                );
+
+                let use_execution_time = state.get_bool_or_default_to_false(
+                    &format!("{robot_name}_action_client"),
+                    &format!("{robot_name}_use_execution_time"),
+                );
+
+                let execution_time = state.get_float_or_default_to_zero(
+                    &format!("{robot_name}_action_client"),
+                    &format!("{robot_name}_execution_time"),
+                );
+
+                let use_blend_radius = state.get_bool_or_default_to_false(
+                    &format!("{robot_name}_action_client"),
+                    &format!("{robot_name}_use_blend_radius"),
+                );
+
+                let blend_radius = state.get_float_or_default_to_zero(
+                    &format!("{robot_name}_action_client"),
+                    &format!("{robot_name}_blend_radius"),
+                );
+
+                let use_joint_positions = state.get_bool_or_default_to_false(
+                    &format!("{robot_name}_action_client"),
+                    &format!("{robot_name}_use_joint_positions"),
+                );
+
+                let joint_positions =
+                    match state.get_value(&format!("{robot_name}_joint_positions")) {
+                        micro_sp::SPValue::Array(array_or_unknown) => match array_or_unknown {
+                            ArrayOrUnknown::UNKNOWN => SAFE_HOME_JOINT_STATE.to_vec(),
+                            ArrayOrUnknown::Array(values) => values
+                                .iter()
+                                .enumerate()
+                                .map(|(i, val)| match val {
+                                    micro_sp::SPValue::Float64(float_or_unknown) => {
+                                        match float_or_unknown {
+                                            FloatOrUnknown::UNKNOWN => SAFE_HOME_JOINT_STATE[i],
+                                            FloatOrUnknown::Float64(ordered_float) => {
+                                                ordered_float.into_inner()
+                                            }
+                                        }
+                                    }
+                                    _ => SAFE_HOME_JOINT_STATE[i],
+                                })
+                                .collect(),
+                        },
+                        _ => SAFE_HOME_JOINT_STATE.to_vec(),
                     };
 
-                let global_velocity_scaling =
-                    match state.get_value(&format!("{robot_name}_global_velocity_scaling")) {
-                        micro_sp::SPValue::Float64(value) => value.into_inner(),
-                        _ => {
-                            r2r::log_error!(
-                                &format!("{robot_name}_action_client"),
-                                "Couldn't get {} from the shared state.",
-                                &format!("{robot_name}_global_velocity_scaling")
-                            );
-                            0.0
-                        }
+                let use_preferred_joint_config = state.get_bool_or_default_to_false(
+                    &format!("{robot_name}_action_client"),
+                    &format!("{robot_name}_use_preferred_joint_config"),
+                );
+
+                let preferred_joint_config =
+                    match state.get_value(&format!("{robot_name}_preferred_joint_config")) {
+                        micro_sp::SPValue::Array(array_or_unknown) => match array_or_unknown {
+                            ArrayOrUnknown::UNKNOWN => SAFE_HOME_JOINT_STATE.to_vec(),
+                            ArrayOrUnknown::Array(values) => values
+                                .iter()
+                                .enumerate()
+                                .map(|(i, val)| match val {
+                                    micro_sp::SPValue::Float64(float_or_unknown) => {
+                                        match float_or_unknown {
+                                            FloatOrUnknown::UNKNOWN => SAFE_HOME_JOINT_STATE[i],
+                                            FloatOrUnknown::Float64(ordered_float) => {
+                                                ordered_float.into_inner()
+                                            }
+                                        }
+                                    }
+                                    _ => SAFE_HOME_JOINT_STATE[i],
+                                })
+                                .collect(),
+                        },
+                        _ => SAFE_HOME_JOINT_STATE.to_vec(),
                     };
 
-                let use_execution_time =
-                    match state.get_value(&format!("{robot_name}_use_execution_time")) {
-                        micro_sp::SPValue::Bool(value) => value,
-                        _ => {
-                            r2r::log_error!(
-                                &format!("{robot_name}_action_client"),
-                                "Couldn't get {} from the shared state.",
-                                &format!("{robot_name}_use_execution_time")
-                            );
-                            false
-                        }
-                    };
+                let use_payload = state.get_bool_or_default_to_false(
+                    &format!("{robot_name}_action_client"),
+                    &format!("{robot_name}_use_payload"),
+                );
 
-                let execution_time = match state.get_value(&format!("{robot_name}_execution_time"))
-                {
-                    micro_sp::SPValue::Float64(value) => value.into_inner(),
-                    _ => {
-                        r2r::log_error!(
-                            &format!("{robot_name}_action_client"),
-                            "Couldn't get {} from the shared state.",
-                            &format!("{robot_name}_execution_time")
-                        );
-                        0.0
-                    }
-                };
+                let payload = state.get_string_or_value(
+                    &format!("{robot_name}_action_client"),
+                    &format!("{robot_name}_payload"),
+                    Payload::default().to_string(),
+                );
 
-                let use_blend_radius =
-                    match state.get_value(&format!("{robot_name}_use_blend_radius")) {
-                        micro_sp::SPValue::Bool(value) => value,
-                        _ => {
-                            r2r::log_error!(
-                                &format!("{robot_name}_action_client"),
-                                "Couldn't get {} from the shared state.",
-                                &format!("{robot_name}_use_blend_radius")
-                            );
-                            false
-                        }
-                    };
+                let baseframe_id = state.get_string_or_value(
+                    &format!("{robot_name}_action_client"),
+                    &format!("{robot_name}_baseframe_id"),
+                    DEFAULT_BASEFRAME_ID.to_string(),
+                );
 
-                let blend_radius = match state.get_value(&format!("{robot_name}_blend_radius")) {
-                    micro_sp::SPValue::Float64(value) => value.into_inner(),
-                    _ => {
-                        r2r::log_error!(
-                            &format!("{robot_name}_action_client"),
-                            "Couldn't get {} from the shared state.",
-                            &format!("{robot_name}_blend_radius")
-                        );
-                        0.0
-                    }
-                };
+                let faceplate_id = state.get_string_or_value(
+                    &format!("{robot_name}_action_client"),
+                    &format!("{robot_name}_faceplate_id"),
+                    DEFAULT_FACEPLATE_ID.to_string(),
+                );
 
-                let use_joint_positions =
-                    match state.get_value(&format!("{robot_name}_use_joint_positions")) {
-                        micro_sp::SPValue::Bool(value) => value,
-                        _ => {
-                            r2r::log_error!(
-                                &format!("{robot_name}_action_client"),
-                                "Couldn't get {} from the shared state.",
-                                &format!("{robot_name}_use_joint_positions")
-                            );
-                            false
-                        }
-                    };
+                let goal_feature_id = state.get_string_or_default_to_unknown(
+                    &format!("{robot_name}_action_client"),
+                    &format!("{robot_name}_goal_feature_id"),
+                );
 
-                let joint_positions = match state
-                    .get_value(&format!("{robot_name}_joint_positions"))
-                {
-                    micro_sp::SPValue::Array(SPValueType::Float64, values) => values
-                        .iter()
-                        .enumerate()
-                        .map(|(i, val)| match val {
-                            micro_sp::SPValue::Float64(ordered_float) => ordered_float.into_inner(),
-                            _ => SAFE_HOME_JOINT_STATE[i],
-                        })
-                        .collect(),
-                    _ => {
-                        r2r::log_error!(
-                            &format!("{robot_name}_action_client"),
-                            "Couldn't get {} from the shared state.",
-                            &format!("{robot_name}_joint_positions")
-                        );
-                        SAFE_HOME_JOINT_STATE.to_vec()
-                    }
-                };
+                let tcp_id = state.get_string_or_default_to_unknown(
+                    &format!("{robot_name}_action_client"),
+                    &format!("{robot_name}_tcp_id"),
+                );
 
-                let use_preferred_joint_config =
-                    match state.get_value(&format!("{robot_name}_use_preferred_joint_config")) {
-                        micro_sp::SPValue::Bool(value) => value,
-                        _ => {
-                            r2r::log_error!(
-                                &format!("{robot_name}_action_client"),
-                                "Couldn't get {} from the shared state.",
-                                &format!("{robot_name}_use_preferred_joint_config")
-                            );
-                            false
-                        }
-                    };
+                let root_frame_id = state.get_string_or_value(
+                    &format!("{robot_name}_action_client"),
+                    &format!("{robot_name}_root_frame_id"),
+                    DEFAULT_ROOT_FRAME_ID.to_string(),
+                );
 
-                let preferred_joint_config = match state
-                    .get_value(&format!("{robot_name}_preferred_joint_config"))
-                {
-                    micro_sp::SPValue::Array(SPValueType::Float64, values) => values
-                        .iter()
-                        .enumerate()
-                        .map(|(i, val)| match val {
-                            micro_sp::SPValue::Float64(ordered_float) => ordered_float.into_inner(),
-                            _ => SAFE_HOME_JOINT_STATE[i],
-                        })
-                        .collect(),
-                    _ => {
-                        r2r::log_error!(
-                            &format!("{robot_name}_action_client"),
-                            "Couldn't get {} from the shared state.",
-                            &format!("{robot_name}_preferred_joint_config")
-                        );
-                        SAFE_HOME_JOINT_STATE.to_vec()
-                    }
-                };
-
-                let use_payload = match state.get_value(&format!("{robot_name}_use_payload")) {
-                    micro_sp::SPValue::Bool(value) => value,
-                    _ => {
-                        r2r::log_error!(
-                            &format!("{robot_name}_action_client"),
-                            "Couldn't get {} from the shared state.",
-                            &format!("{robot_name}_use_payload")
-                        );
-                        false
-                    }
-                };
-
-                let payload = match state.get_value(&format!("{robot_name}_payload")) {
-                    micro_sp::SPValue::String(value) => value,
-                    _ => {
-                        r2r::log_error!(
-                            &format!("{robot_name}_action_client"),
-                            "Couldn't get {} from the shared state.",
-                            &format!("{robot_name}_payload")
-                        );
-                        Payload::default().to_string()
-                    }
-                };
-
-                let baseframe_id = match state.get_value(&format!("{robot_name}_baseframe_id")) {
-                    micro_sp::SPValue::String(value) => value,
-                    _ => {
-                        r2r::log_error!(
-                            &format!("{robot_name}_action_client"),
-                            "Couldn't get {} from the shared state.",
-                            &format!("{robot_name}_baseframe_id")
-                        );
-                        DEFAULT_BASEFRAME_ID.to_string()
-                    }
-                };
-
-                let faceplate_id = match state.get_value(&format!("{robot_name}_faceplate_id")) {
-                    micro_sp::SPValue::String(value) => value,
-                    _ => {
-                        r2r::log_error!(
-                            &format!("{robot_name}_action_client"),
-                            "Couldn't get {} from the shared state.",
-                            &format!("{robot_name}_faceplate_id")
-                        );
-                        DEFAULT_BASEFRAME_ID.to_string()
-                    }
-                };
-
-                let goal_feature_id =
-                    match state.get_value(&format!("{robot_name}_goal_feature_id")) {
-                        micro_sp::SPValue::String(value) => value,
-                        _ => {
-                            r2r::log_error!(
-                                &format!("{robot_name}_action_client"),
-                                "Couldn't get {} from the shared state.",
-                                &format!("{robot_name}_goal_feature_id")
-                            );
-                            "unknown".to_string()
-                        }
-                    };
-
-                let tcp_id = match state.get_value(&format!("{robot_name}_tcp_id")) {
-                    micro_sp::SPValue::String(value) => value,
-                    _ => {
-                        r2r::log_error!(
-                            &format!("{robot_name}_action_client"),
-                            "Couldn't get {} from the shared state.",
-                            &format!("{robot_name}_tcp_id")
-                        );
-                        "unknown".to_string()
-                    }
-                };
-
-                let root_frame_id = match state.get_value(&format!("{robot_name}_root_frame_id")) {
-                    micro_sp::SPValue::String(value) => value,
-                    _ => {
-                        r2r::log_error!(
-                            &format!("{robot_name}_action_client"),
-                            "Couldn't get {} from the shared state.",
-                            &format!("{robot_name}_root_frame_id")
-                        );
-                        DEFAULT_ROOT_FRAME_ID.to_string()
-                    }
-                };
-
-                let target_in_base = match lookup_transform_with_root(
-                    &baseframe_id,
-                    &goal_feature_id,
-                    &root_frame_id,
-                    transform_buffer,
-                ) {
+                let (response_tx, response_rx) = oneshot::channel();
+                state_mgmt
+                    .send(StateManagement::LookupTransform((
+                        baseframe_id,
+                        goal_feature_id,
+                        response_tx,
+                    )))
+                    .await?;
+                let target_in_base_option = response_rx.await?;
+                let target_in_base = match target_in_base_option {
                     Some(transform) => transform_to_string(&transform),
-                    None => {
-                        r2r::log_error!(
-                            &format!("{robot_name}_action_client"),
-                            "Transform lookup has failed between frames {baseframe_id} and {goal_feature_id}.");
-                        continue 'scan;
-                    }
+                    None => continue 'scan,
                 };
 
-                let tcp_in_faceplate = match lookup_transform_with_root(
-                    &faceplate_id,
-                    &tcp_id,
-                    &root_frame_id,
-                    transform_buffer,
-                ) {
+                let (response_tx, response_rx) = oneshot::channel();
+                state_mgmt
+                    .send(StateManagement::LookupTransform((
+                        faceplate_id,
+                        tcp_id,
+                        response_tx,
+                    )))
+                    .await?;
+                let tcp_in_faceplate_option = response_rx.await?;
+                let tcp_in_faceplate = match tcp_in_faceplate_option {
                     Some(transform) => transform_to_string(&transform),
-                    None => {
-                        r2r::log_error!(
-                            &format!("{robot_name}_action_client"),
-                            "Transform lookup has failed between frames {faceplate_id} and {tcp_id}.");
-                        continue 'scan;
-                    }
+                    None => continue 'scan,
                 };
 
                 let robot_command = RobotCommand {
@@ -480,19 +339,23 @@ pub async fn action_client(
                         .unwrap();
 
                     'cancel: loop {
-                        let cancel_current_goal = match state
-                            .get_value(&format!("{robot_name_string_clone}_cancel_current_goal"))
-                        {
-                            micro_sp::SPValue::Bool(value) => value,
-                            _ => {
-                                r2r::log_error!(
-                                    &format!("{robot_name_string_clone}_action_client"),
-                                    "Couldn't get {} from the shared state.",
-                                    &format!("{robot_name_string_clone}_cancel_current_goal")
-                                );
-                                false
-                            }
-                        };
+                        let cancel_current_goal = state.get_bool_or_default_to_false(
+                            &format!("{robot_name_string_clone}_action_client"),
+                            &format!("{robot_name_string_clone}_cancel_current_goal"),
+                        );
+                        // let cancel_current_goal = match state
+                        //     .get_value(&format!("{robot_name_string_clone}_cancel_current_goal"))
+                        // {
+                        //     micro_sp::SPValue::Bool(value) => value,
+                        //     _ => {
+                        //         r2r::log_error!(
+                        //             &format!("{robot_name_string_clone}_action_client"),
+                        //             "Couldn't get {} from the shared state.",
+                        //             &format!("{robot_name_string_clone}_cancel_current_goal")
+                        //         );
+                        //         false
+                        //     }
+                        // };
                         if cancel_current_goal {
                             match goal_handle.cancel() {
                                 Ok(cancel_future) => match cancel_future.await {

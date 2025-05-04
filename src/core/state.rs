@@ -40,28 +40,28 @@ pub fn generate_robot_interface_state(robot_name: &str) -> State {
     let root_frame_id = v!(&&format!("{}_root_frame_id", robot_name));
     let cancel_current_goal = bv!(&&format!("{}_cancel_current_goal", robot_name));
 
-    let state = state.add(assign!(command_type, SPValue::UNKNOWN));
-    let state = state.add(assign!(accelleration, SPValue::UNKNOWN));
-    let state = state.add(assign!(velocity, SPValue::UNKNOWN));
-    let state = state.add(assign!(global_acceleration_scaling, SPValue::UNKNOWN));
-    let state = state.add(assign!(global_velocity_scaling, SPValue::UNKNOWN));
-    let state = state.add(assign!(use_execution_time, SPValue::UNKNOWN));
-    let state = state.add(assign!(execution_time, SPValue::UNKNOWN));
-    let state = state.add(assign!(use_blend_radius, SPValue::UNKNOWN));
-    let state = state.add(assign!(blend_radius, SPValue::UNKNOWN));
-    let state = state.add(assign!(use_joint_positions, SPValue::UNKNOWN));
-    let state = state.add(assign!(joint_positions, SPValue::UNKNOWN));
-    let state = state.add(assign!(joint_states, SPValue::UNKNOWN));
-    let state = state.add(assign!(use_preferred_joint_config, SPValue::UNKNOWN));
-    let state = state.add(assign!(preferred_joint_config, SPValue::UNKNOWN));
-    let state = state.add(assign!(use_payload, SPValue::UNKNOWN));
-    let state = state.add(assign!(payload, SPValue::UNKNOWN));
-    let state = state.add(assign!(baseframe_id, SPValue::UNKNOWN));
-    let state = state.add(assign!(faceplate_id, SPValue::UNKNOWN));
-    let state = state.add(assign!(goal_feature_id, SPValue::UNKNOWN));
-    let state = state.add(assign!(tcp_id, SPValue::UNKNOWN));
-    let state = state.add(assign!(root_frame_id, SPValue::UNKNOWN));
-    let state = state.add(assign!(cancel_current_goal, SPValue::UNKNOWN));
+    let state = state.add(assign!(command_type, SPValue::String(StringOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(accelleration, SPValue::Float64(FloatOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(velocity, SPValue::Float64(FloatOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(global_acceleration_scaling, SPValue::Float64(FloatOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(global_velocity_scaling, SPValue::Float64(FloatOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(use_execution_time, SPValue::Bool(BoolOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(execution_time, SPValue::Float64(FloatOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(use_blend_radius, SPValue::Bool(BoolOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(blend_radius, SPValue::Float64(FloatOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(use_joint_positions, SPValue::Bool(BoolOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(joint_positions, SPValue::Array(ArrayOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(joint_states, SPValue::Array(ArrayOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(use_preferred_joint_config, SPValue::Bool(BoolOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(preferred_joint_config, SPValue::Array(ArrayOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(use_payload, SPValue::Bool(BoolOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(payload, SPValue::String(StringOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(baseframe_id, SPValue::String(StringOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(faceplate_id, SPValue::String(StringOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(goal_feature_id, SPValue::String(StringOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(tcp_id, SPValue::String(StringOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(root_frame_id, SPValue::String(StringOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(cancel_current_goal, SPValue::Bool(BoolOrUnknown::UNKNOWN)));
 
     state
 }

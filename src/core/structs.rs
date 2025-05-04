@@ -1,6 +1,6 @@
 use std::fmt;
 
-use r2r_transforms::TransformStamped;
+use micro_sp::*;
 use serde::{Deserialize, Serialize};
 // use tokio::sync::oneshot;
 
@@ -171,18 +171,18 @@ impl Payload {
 //     }
 // }
 
-pub fn transform_to_string(tf_stamped: &TransformStamped) -> String {
+pub fn transform_to_string(tf_stamped: &SPTransformStamped) -> String {
     let x = tf_stamped.transform.translation.x;
     let y = tf_stamped.transform.translation.y;
     let z = tf_stamped.transform.translation.z;
     let rot = tf_stamped.transform.rotation.clone();
 
     // Normalize quaternion for safety
-    let norm = (rot.w.powi(2) + rot.i.powi(2) + rot.j.powi(2) + rot.k.powi(2)).sqrt();
+    let norm = (rot.w.powi(2) + rot.x.powi(2) + rot.y.powi(2) + rot.z.powi(2)).sqrt();
     let w = rot.w / norm;
-    let x_r = rot.i / norm;
-    let y_r = rot.j / norm;
-    let z_r = rot.k / norm;
+    let x_r = rot.x / norm;
+    let y_r = rot.y / norm;
+    let z_r = rot.z / norm;
 
     let angle = 2.0 * w.acos();
     let den = (1.0 - w.powi(2)).sqrt();

@@ -1,14 +1,19 @@
 services:
-  ros_kasm_service:
+  ur_ros_rviz:
     build:
       context: .
       dockerfile: Dockerfile # Specify our custom Dockerfile
     container_name: ur_ros_rviz
     ports:
-      # KasmVNC typically uses HTTPS on port 6901 by default
-      - "6901:6901"
-    shm_size: '2gb' # Recommended: Increase shared memory for better graphical performance with RViz
-    # environment:
+      - "6902:6901"
+    shm_size: '1gb' # Recommended: Increase shared memory for better graphical performance with RViz
+    environment:
+      - URDF_PATH=/app/share/ur.urdf.xacro
+      - UR_ADDRESS=192.168.1.31
+      - OVERRIDE_HOST=FALSE # If using a DOCKURsim, set to TRUE
+      - OVERRIDE_HOST_ADDRESS=172.17.0.1
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
       # Set the password for the VNC web interface using Kasm's variable
       # - VNC_PW=your_kasm_password  # <<< CHANGE THIS TO A SECURE PASSWORD!
 

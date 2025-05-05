@@ -32,17 +32,12 @@ pub fn convert_xacro_to_urdf(args: URDFParameters) -> Option<String> {
 #[test]
 fn test_xacro() {
     use std::path::PathBuf;
+    // let robot_id = std::env::var("ROBOT_ID").expect("ROBOT_ID is not set");
+    let urdf_dir = std::env::var("URDF_DIR").expect("URDF_DIR is not set");
+    // let templates_dir = std::env::var("TEMPLATES_DIR").expect("TEMPLATES_DIR is not set");
 
-    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR is not set");
-   
-
-    let mut path = PathBuf::from(&manifest_dir);
-    path.pop();
-    path.pop();
-
-    path.push("src/ur_description/urdf/ur.urdf.xacro");
-
-    println!("{:?}", path);
+    let mut path = PathBuf::from(&urdf_dir);
+    path.push("ur.urdf.xacro");
 
     let urdf_path = path.to_string_lossy().to_string();
 

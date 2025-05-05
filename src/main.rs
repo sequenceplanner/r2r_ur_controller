@@ -14,10 +14,10 @@ pub static NODE_ID: &'static str = "r2r_ur_controller";
 async fn main() -> Result<(), Box<dyn Error>> {
     // setup the node
     let robot_id = std::env::var("ROBOT_ID").expect("ROBOT_ID is not set");
-    let manifest_dir = std::env::var("URDF_DIR").expect("URDF_DIR is not set");
+    let urdf_dir = std::env::var("URDF_DIR").expect("URDF_DIR is not set");
     let templates_dir = std::env::var("TEMPLATES_DIR").expect("TEMPLATES_DIR is not set");
 
-    let mut path = PathBuf::from(&manifest_dir);
+    let mut path = PathBuf::from(&urdf_dir);
     path.push("ur.urdf.xacro");
 
     let urdf_path = path.to_string_lossy().to_string();

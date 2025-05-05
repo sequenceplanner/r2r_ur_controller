@@ -13,17 +13,12 @@ pub static NODE_ID: &'static str = "r2r_ur_controller";
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     // setup the node
-    let robot_name = "ur1";
-
-    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR is not set");
+    let robot_id = std::env::var("ROBOT_ID").expect("ROBOT_ID is not set");
+    let manifest_dir = std::env::var("URDF_DIR").expect("URDF_DIR is not set");
+    let templates_dir = std::env::var("TEMPLATES_DIR").expect("TEMPLATES_DIR is not set");
 
     let mut path = PathBuf::from(&manifest_dir);
-    path.pop();
-    path.pop();
-
-    path.push("src/ur_description/urdf/ur.urdf.xacro");
-
-    // println!("{:?}", path);
+    path.push("ur.urdf.xacro");
 
     let urdf_path = path.to_string_lossy().to_string();
 
@@ -39,7 +34,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let node = r2r::Node::create(ctx, NODE_ID, "")?;
     let arc_node = Arc::new(Mutex::new(node));
 
-    let state = generate_robot_interface_state(&robot_name);
+    let state = generate_robot_interface_state(&robot_id);
     let (tx, rx) = mpsc::channel(50);
 
     tokio::task::spawn(async move {
@@ -49,9 +44,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         };
     });
 
-    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR is not set");
     let templates: tera::Tera = {
-        let tera = match tera::Tera::new(&format!("{}/templates/*.script", manifest_dir)) {
+        let tera = match tera::Tera::new(&format!("{}/*.script", templates_dir)) {
             Ok(t) => {
                 log::warn!(target: &&format!("r2r_ur_controller"), "Searching for Tera templates, wait...",);
                 t
@@ -117,16 +111,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
     let tx_clone = tx.clone();
+    let robot_id_clone = robot_id.clone();
     tokio::task::spawn(async move {
-        joint_subscriber(&robot_name, arc_node_clone, tx_clone)
+        joint_subscriber(&robot_id_clone, arc_node_clone, tx_clone)
             .await
             .unwrap()
     });
 
     let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
     let tx_clone = tx.clone();
+    let robot_id_clone = robot_id.clone();
     tokio::task::spawn(async move {
-        action_client(&robot_name, arc_node_clone, tx_clone, &templates)
+        action_client(&robot_id_clone, arc_node_clone, tx_clone, &templates)
             .await
             .unwrap()
     });

@@ -12,10 +12,16 @@ pub static NODE_ID: &'static str = "r2r_ur_controller";
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    // setup the node
     let robot_id = std::env::var("ROBOT_ID").expect("ROBOT_ID is not set");
     let urdf_dir = std::env::var("URDF_DIR").expect("URDF_DIR is not set");
     let templates_dir = std::env::var("TEMPLATES_DIR").expect("TEMPLATES_DIR is not set");
+    let override_host = std::env::var("OVERRIDE_HOST")
+        .expect("OVERRIDE_HOST is not set")
+        .parse::<bool>()
+        .unwrap();
+    let override_host_addess =
+        std::env::var("OVERRIDE_HOST_ADDRESS").expect("OVERRIDE_HOST_ADDRESS is not set");
+    let ur_address = std::env::var("UR_ADDRESS").expect("UR_ADDRESS is not set");
 
     let mut path = PathBuf::from(&urdf_dir);
     path.push("ur.urdf.xacro");
@@ -128,16 +134,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
     });
 
     tokio::task::spawn(async move {
-        ur_script_driver(Some("127.0.0.1".to_string()), Some("172.17.0.1".to_string()))
-            .await
-            .unwrap()
+        ur_script_driver(
+            Some(ur_address),
+            if override_host {
+                Some(override_host_addess)
+            } else {
+                None
+            },
+        )
+        .await
+        .unwrap()
     });
-
-    // tokio::task::spawn(async move {
-    //     ur_script_driver(Some("192.168.1.31".to_string()), None)
-    //         .await
-    //         .unwrap()
-    // });
 
     tokio::task::spawn(async move { robot_state_publisher(&urdf, "").await.unwrap() });
 

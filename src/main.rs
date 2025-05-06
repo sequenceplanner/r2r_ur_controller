@@ -12,13 +12,32 @@ pub static NODE_ID: &'static str = "r2r_ur_controller";
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let robot_id = std::env::var("ROBOT_ID").expect("ROBOT_ID is not set");
+    initialize_env_logger();
+    let robot_id = match std::env::var("ROBOT_ID") {
+        Ok(id) => id,
+        Err(e) => {
+            log::error!(target: &&format!("r2r_ur_controller"), "Failed to read ROBOT_ID environment variable: {}", e);
+            log::error!(target: &&format!("r2r_ur_controller"), "Seeting ROBOT_ID to robot.");
+            "robot".to_string()
+        }
+    };
     let urdf_dir = std::env::var("URDF_DIR").expect("URDF_DIR is not set");
     let templates_dir = std::env::var("TEMPLATES_DIR").expect("TEMPLATES_DIR is not set");
-    let override_host = std::env::var("OVERRIDE_HOST")
-        .expect("OVERRIDE_HOST is not set")
-        .parse::<bool>()
-        .unwrap();
+    let override_host = match std::env::var("OVERRIDE_HOST") {
+        Ok(val_str) => match val_str.to_lowercase().parse::<bool>() {
+            Ok(b_val) => b_val,
+            Err(e) => {
+                log::error!(target: &&format!("r2r_ur_controller"), "Failed to parse OVERRIDE_HOST value '{}' as boolean: {}", val_str, e);
+                log::error!(target: &&format!("r2r_ur_controller"), "Seeting OVERRIDE_HOST to false.");
+                false
+            }
+        },
+        Err(e) => {
+            log::error!(target: &&format!("r2r_ur_controller"), "Failed to read OVERRIDE_HOST environment variable: {}", e);
+            log::error!(target: &&format!("r2r_ur_controller"), "Seeting OVERRIDE_HOST to false.");
+            false
+        }
+    };
     let override_host_addess =
         std::env::var("OVERRIDE_HOST_ADDRESS").expect("OVERRIDE_HOST_ADDRESS is not set");
     let ur_address = std::env::var("UR_ADDRESS").expect("UR_ADDRESS is not set");

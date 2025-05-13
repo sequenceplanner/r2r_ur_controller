@@ -43,7 +43,7 @@ pub async fn robot_state_to_redis(
         .lock()
         .unwrap()
         // &format!("{robot_name}_dashboard_server")
-        .subscribe::<TFMessage>("/tf", QosProfile::default())?;
+        .subscribe::<TFMessage>("/tf", QosProfile::transient_local(QosProfile::default()))?;
 
     loop {
         match subscriber.next().await {

@@ -1,4 +1,5 @@
 use micro_sp::*;
+use r2r_ur_controller::ros::robot_state_to_redis::robot_state_to_redis;
 use r2r_ur_controller::*;
 use std::path::PathBuf;
 
@@ -139,6 +140,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let robot_id_clone = robot_id.clone();
     tokio::task::spawn(async move {
         joint_subscriber(&robot_id_clone, arc_node_clone, tx_clone)
+            .await
+            .unwrap()
+    });
+
+    let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
+    let tx_clone = tx.clone();
+    let robot_id_clone = robot_id.clone();
+    tokio::task::spawn(async move {
+        robot_state_to_redis(&robot_id_clone, arc_node_clone, tx_clone)
             .await
             .unwrap()
     });

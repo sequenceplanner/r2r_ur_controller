@@ -46,7 +46,8 @@ pub async fn robot_state_to_redis(
         .subscribe::<TFMessage>("tf", QosProfile::volatile(QosProfile::default()))?;
 
     for initial in vec![
-        ("base_link_inertia", "base_link"),
+        ("base_link", "base_link_inertia"),
+        ("base_link_inertia", "shoulder_link"),
         ("shoulder_link", "upper_arm_link"),
         ("upper_arm_link", "forearm_link"),
         ("forearm_link", "wrist_1_link"),

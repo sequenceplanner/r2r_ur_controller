@@ -43,7 +43,34 @@ pub async fn robot_state_to_redis(
         .lock()
         .unwrap()
         // &format!("{robot_name}_dashboard_server")
-        .subscribe::<TFMessage>("/tf", QosProfile::transient_local(QosProfile::default()))?;
+        .subscribe::<TFMessage>("tf", QosProfile::volatile(QosProfile::default()))?;
+
+    for initial in vec![
+        ("base_link_inertia", "base_link"),
+        ("shoulder_link", "upper_arm_link"),
+        ("upper_arm_link", "forearm_link"),
+        ("forearm_link", "wrist_1_link"),
+        ("wrist_1_link", "wrist_2_link"),
+        ("wrist_2_link", "wrist_3_link"),
+        ("wrist_3_link", "flange"),
+        ("wrist_3_link", "ft_frame"),
+        ("flange", "tool0")
+        ] {
+        state_mgmt
+            .send(StateManagement::InsertTransform((
+                initial.1.to_string(),
+                SPTransformStamped {
+                    active_transform: true,
+                    enable_transform: true,
+                    time_stamp: SystemTime::now(),
+                    parent_frame_id: initial.0.to_string(),
+                    child_frame_id: initial.1.to_string(),
+                    transform: SPTransform::default(),
+                    metadata: MapOrUnknown::UNKNOWN,
+                }
+            )))
+            .await?;
+    }
 
     loop {
         match subscriber.next().await {

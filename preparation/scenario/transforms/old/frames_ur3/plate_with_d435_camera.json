@@ -1,0 +1,28 @@
+{
+    "parent_frame_id": "tool0",
+    "child_frame_id": "plate_with_camera",
+    "transform": {
+      "translation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.033
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": -0.7071,
+        "w": 0.7071
+      }
+    },
+    "extra_data": {
+      "active": false,
+      "show_mesh": true,
+      "mesh_r": 0.2,
+      "mesh_g": 0.2,
+      "mesh_b": 0.2,
+      "mesh_a": 1.0,
+      "mesh_type": 10,
+      "mesh_path": "/home/student/Desktop/scenario/meshes/plate_with_camera.stl",
+      "mesh_scale": 0.001
+    }
+}

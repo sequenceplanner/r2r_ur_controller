@@ -1,0 +1,20 @@
+{
+    "parent_frame_id": "plate_with_camera",
+    "child_frame_id": "d435_camera",
+    "transform": {
+      "translation": {
+        "x": 0.054,
+        "y": -0.0325,
+        "z": 0.0666
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      }
+    },
+    "extra_data": {
+      "active": false
+    }
+}

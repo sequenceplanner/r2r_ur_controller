@@ -1,0 +1,20 @@
+{
+    "parent_frame_id": "vention_stand",
+    "child_frame_id": "base_link",
+    "transform": {
+      "translation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      }
+    },
+    "extra_data": {
+      "active": false
+    }
+}

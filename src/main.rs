@@ -18,7 +18,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         Ok(id) => id,
         Err(e) => {
             log::error!(target: &&format!("r2r_ur_controller"), "Failed to read ROBOT_ID environment variable: {}", e);
-            log::error!(target: &&format!("r2r_ur_controller"), "Seeting ROBOT_ID to robot.");
+            log::error!(target: &&format!("r2r_ur_controller"), "Setting ROBOT_ID to robot.");
             "robot".to_string()
         }
     };
@@ -94,15 +94,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
         log::info!(target: &&format!("r2r_ur_controller"), "Found templates.");
     }
 
-    let base_in_world = SPTransformStamped {
-        active_transform: false,
-        child_frame_id: "base".to_string(),
-        parent_frame_id: "world".to_string(),
-        enable_transform: true,
-        time_stamp: SystemTime::now(),
-        transform: SPTransform::default(),
-        metadata: MapOrUnknown::UNKNOWN,
-    };
+    // let base_in_world = SPTransformStamped {
+    //     active_transform: false,
+    //     child_frame_id: "base".to_string(),
+    //     parent_frame_id: "world".to_string(),
+    //     enable_transform: true,
+    //     time_stamp: SystemTime::now(),
+    //     transform: SPTransform::default(),
+    //     metadata: MapOrUnknown::UNKNOWN,
+    // };
 
     // base_in_world.active = false;
     // base_in_world.child_frame_id = "base".to_string();
@@ -125,12 +125,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // ghost_base_link_in_base.child_frame_id = "ghost_base_link".to_string();
     // ghost_base_link_in_base.parent_frame_id = "base".to_string();
 
-    tx.send(StateManagement::InsertTransform((
-        base_in_world.child_frame_id.clone(),
-        base_in_world,
-    )))
-    .await
-    .expect("failed");
+    // tx.send(StateManagement::InsertTransform((
+    //     base_in_world.child_frame_id.clone(),
+    //     base_in_world,
+    // )))
+    // .await
+    // .expect("failed");
 
     // println!("local: {:?}", transform_buffer.get_local_transform_names());
     // println!("global: {:?}", transform_buffer.get_global_transform_names());

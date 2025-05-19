@@ -1,0 +1,28 @@
+{
+    "parent_frame_id": "tool0",
+    "child_frame_id": "piab_tool",
+    "transform": {
+      "translation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.01
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.0,
+        "w": 0.0
+      }
+    },
+    "extra_data": {
+      "active": false,
+      "show_mesh": true,
+      "mesh_r": 0.5,
+      "mesh_g": 0.5,
+      "mesh_b": 0.5,
+      "mesh_a": 1.0,
+      "mesh_type": 10,
+      "mesh_path": "/home/student/Desktop/scenario/meshes/piab_tool.stl",
+      "mesh_scale": 0.001
+  }
+}

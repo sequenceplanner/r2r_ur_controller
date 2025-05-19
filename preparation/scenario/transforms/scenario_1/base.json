@@ -1,0 +1,22 @@
+{
+    "child_frame_id": "base",
+    "parent_frame_id": "stand",
+    "transform": {
+        "translation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+        },
+        "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+        }
+    },
+    "metadata": {
+        "enable_transform": false,
+        "active_transform": false,
+        "visualize_mesh": false
+    }
+}

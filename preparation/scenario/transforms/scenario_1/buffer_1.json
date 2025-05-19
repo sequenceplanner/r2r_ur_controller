@@ -1,0 +1,21 @@
+{
+    "child_frame_id": "buffer_1",
+    "parent_frame_id": "box_table",
+    "transform": {
+        "translation": {
+            "x": 0.5,
+            "y": 0.2,
+            "z": 0.05
+        },
+        "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+        }
+    },
+    "metadata": {
+        "enable_transform": true,
+        "active_transform": true
+    }
+}

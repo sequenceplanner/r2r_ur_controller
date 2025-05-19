@@ -1,0 +1,28 @@
+{
+    "child_frame_id": "red_cube",
+    "parent_frame_id": "buffer_3",
+    "transform": {
+        "translation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+        },
+        "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+        }
+    },
+    "metadata": {
+        "enable_transform": true,
+        "active_transform": true,
+        "mesh_file": "cube.stl",
+        "visualize_mesh": true,
+        "mesh_scale": 0.01,
+        "mesh_a": 1.0,
+        "mesh_r": 1.0,
+        "mesh_g": 0.0,
+        "mesh_b": 0.0
+    }
+}

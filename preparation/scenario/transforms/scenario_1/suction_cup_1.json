@@ -1,0 +1,30 @@
+{
+  "child_frame_id": "suction_cup_1",
+  "parent_frame_id": "piab_tool",
+  "transform": {
+      "translation": {
+          "x": 0.058,
+          "y": 0.0,
+          "z": 0.13532
+      },
+      "rotation": {
+          "x": 1.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 0.0
+      }
+  },
+  "metadata": {
+      "enable_transform": true,
+      "active_transform": false,
+      "mesh_file": "suction_cup.stl",
+      "visualize_mesh": true,
+      "scale_x": 0.001,
+      "scale_y": 0.001,
+      "scale_z": 0.001,
+      "mesh_a": 1.0,
+      "mesh_r": 0.8,
+      "mesh_g": 0.06,
+      "mesh_b": 0.06
+  }
+}

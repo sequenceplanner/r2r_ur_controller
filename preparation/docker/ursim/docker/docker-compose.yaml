@@ -1,0 +1,15 @@
+version: '3.8' # Specify the compose file version (optional but recommended)
+
+services:
+  dockursim: # This is the logical name for the service within Compose
+    build:
+      context: .
+      dockerfile: Dockerfile # Specify our custom Dockerfile
+    container_name: dockursim # Explicitly sets the container name, matching --name
+    environment:
+      - ROBOT_MODEL=UR10 # Sets the environment variable, matching -e
+    ports:
+      # Maps host ports to container ports, matching -p flags
+      - "3000:3000"
+      - "29999:29999"
+      - "30001-30004:30001-30004" # Docker Compose supports port ranges

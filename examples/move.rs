@@ -57,7 +57,9 @@ async fn trigger(
         .update("r1_tcp_id", "suction_cup_1".to_spvalue())
         .update("r1_faceplate_id", "tool0".to_spvalue())
         .update("r1_baseframe_id", "base_link".to_spvalue())
-        .update("r1_goal_feature_id", "above_buffer_4".to_spvalue())
+        .update("r1_goal_feature_id", "above_buffer_1".to_spvalue())
+        // .update("r1_use_joint_positions", true.to_spvalue())
+        // .update("r1_joint_positions", vec!(0.0, 0.0, 0.0, -1.5707, 0.0, 0.0).to_spvalue())
         .update("r1_command_type", "move_j".to_spvalue());
 
     let modified_state = state.get_diff_partial_state(&new_state);

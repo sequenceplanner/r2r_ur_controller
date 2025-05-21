@@ -10,7 +10,7 @@ use tokio::sync::{mpsc, oneshot};
 use crate::*;
 
 pub const UR_ACTION_SERVER_TICKER_RATE: u64 = 200;
-pub static SAFE_HOME_JOINT_STATE: [f64; 6] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+pub static SAFE_HOME_JOINT_STATE: [f64; 6] = [0.0, -1.5707, 0.0, -1.5707, 0.0, 0.0];
 pub static DEFAULT_BASEFRAME_ID: &'static str = "base_link"; // base_link if simulation, base if real or ursim
 pub static DEFAULT_FACEPLATE_ID: &'static str = "tool0";
 // pub static DEFAULT_TCP_ID: &'static str = "tool0";
@@ -32,7 +32,7 @@ pub async fn action_client(
         .unwrap()
         .create_action_client::<ExecuteScript::Action>(&format!("ur_script"))?;
     let waiting_for_server = r2r::Node::is_available(&client)?;
-    
+
     r2r::log_warn!(
         &format!("{robot_name}_action_client"),
         "Waiting for the {robot_name} control action server..."
@@ -266,6 +266,21 @@ pub async fn action_client(
                             &format!("{robot_name}_action_client"),
                             "Failed to generate UR Script."
                         );
+                        // Inform state that the request has failed and pull down the trigger
+                        // request_state = ActionRequestState::Failed.to_string();
+                        // state_mgmt
+                        //     .send(StateManagement::Set((
+                        //         format!("{robot_name}_request_state"),
+                        //         request_state.to_spvalue(),
+                        //     )))
+                        //     .await?;
+                        // state_mgmt
+                        // .send(StateManagement::Set((
+                        //     format!("{robot_name}_request_trigger"),
+                        //     false.to_spvalue(),
+                        // )))
+                        // .await?;
+
                         continue 'scan;
                     }
                 };
@@ -276,16 +291,44 @@ pub async fn action_client(
                     Ok(future) => match future.await {
                         Ok(triplet) => triplet,
                         Err(e) => {
-                            r2r::log_info!(
+                            r2r::log_error!(
                                 &format!("{robot_name}_action_client"),
-                                "Could not send goal request."
+                                "Could not send goal request with error: {e}."
                             );
-                            return Err(Box::new(e));
+                            state_mgmt
+                                .send(StateManagement::Set((
+                                    format!("{robot_name}_request_state"),
+                                    ActionRequestState::Failed.to_string().to_spvalue(),
+                                )))
+                                .await?;
+                            state_mgmt
+                                .send(StateManagement::Set((
+                                    format!("{robot_name}_request_trigger"),
+                                    false.to_spvalue(),
+                                )))
+                                .await?;
+                            continue 'scan;
+                            // return Err(Box::new(e));
                         }
                     },
                     Err(e) => {
-                        r2r::log_info!(&format!("{robot_name}_action_client"), "Did not get goal.");
-                        return Err(Box::new(e));
+                        r2r::log_info!(
+                            &format!("{robot_name}_action_client"),
+                            "Did not get goal with error: {e}."
+                        );
+                        state_mgmt
+                            .send(StateManagement::Set((
+                                format!("{robot_name}_request_state"),
+                                ActionRequestState::Failed.to_string().to_spvalue(),
+                            )))
+                            .await?;
+                        state_mgmt
+                            .send(StateManagement::Set((
+                                format!("{robot_name}_request_trigger"),
+                                false.to_spvalue(),
+                            )))
+                            .await?;
+                        continue 'scan;
                     }
                 };
 
@@ -295,14 +338,44 @@ pub async fn action_client(
                         r2r::GoalStatus::Accepted => {
                             r2r::log_info!(
                                 &format!("{robot_name}_action_client"),
-                                "Goal was accepted."
+                                "Goal status was accepted."
                             );
                             goal_accepted = true;
                         }
-                        _ => {
-                            r2r::log_error!(
+                        r2r::GoalStatus::Executing => {
+                            r2r::log_info!(
                                 &format!("{robot_name}_action_client"),
-                                "Goal was not accepted."
+                                "Goal status is executing."
+                            );
+                        }
+                        r2r::GoalStatus::Succeeded => {
+                            r2r::log_info!(
+                                &format!("{robot_name}_action_client"),
+                                "Goal status is succeeded."
+                            );
+                        }
+                        r2r::GoalStatus::Unknown => {
+                            r2r::log_warn!(
+                                &format!("{robot_name}_action_client"),
+                                "Goal status is unknown."
+                            );
+                        }
+                        r2r::GoalStatus::Canceled => {
+                            r2r::log_info!(
+                                &format!("{robot_name}_action_client"),
+                                "Goal is cancelled."
+                            );
+                        }
+                        r2r::GoalStatus::Canceling => {
+                            r2r::log_info!(
+                                &format!("{robot_name}_action_client"),
+                                "Goal is canceling."
+                            );
+                        }
+                        r2r::GoalStatus::Aborted => {
+                            r2r::log_info!(
+                                &format!("{robot_name}_action_client"),
+                                "Goal is canceling."
                             );
                         }
                     },
@@ -315,11 +388,16 @@ pub async fn action_client(
                 }
 
                 if !goal_accepted {
-                    request_state = ActionRequestState::Failed.to_string();
                     state_mgmt
                         .send(StateManagement::Set((
                             format!("{robot_name}_request_state"),
-                            request_state.to_spvalue(),
+                            ActionRequestState::Failed.to_string().to_spvalue(),
+                        )))
+                        .await?;
+                    state_mgmt
+                        .send(StateManagement::Set((
+                            format!("{robot_name}_request_trigger"),
+                            false.to_spvalue(),
                         )))
                         .await?;
                     continue 'scan;

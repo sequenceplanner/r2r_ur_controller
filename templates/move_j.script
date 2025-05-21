@@ -2,9 +2,7 @@ def script():
   {%- if use_payload %}
   set_target_payload({{ payload }})
   {%- endif %}
-  {%- if set_tcp %}
   set_tcp({{ tcp_in_faceplate }})
-  {%- endif %}
   {% if use_joint_positions -%}
   socket_send_line("movej without inverse kinematics starting.", "ur_driver_socket")
   movej({{ joint_positions }}, a={{ acceleration }}, v={{ velocity }}

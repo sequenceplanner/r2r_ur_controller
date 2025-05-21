@@ -17,7 +17,7 @@ pub enum CommandType {
     PickVacuum,
     PlaceVacuum,
     StartVacuum,
-    StopVacuum
+    StopVacuum,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -61,7 +61,7 @@ impl fmt::Display for DashboardCommandType {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct RobotCommand {
     // MoveJ, Movel, StartVacuum...
-    pub command_type: String, 
+    pub command_type: String,
     // If command is 'move_j', joint acceleration of leading axis [rad/s^2].
     // If command is 'move_l', tool acceleration [m/s^2].
     pub acceleration: f64,
@@ -69,7 +69,7 @@ pub struct RobotCommand {
     // If command is 'move_l', tool velocity [m/s].
     pub velocity: f64,
     pub global_acceleration_scaling: f64, // Between 0.0 and 1.0
-    pub global_velocity_scaling: f64, // Between 0.0 and 1.0
+    pub global_velocity_scaling: f64,     // Between 0.0 and 1.0
     // Movement execution time is the alternative parameter
     // that can control the speed of the robot. If set, the robot will
     // execute the motion in the time specified here (in seconds).
@@ -90,14 +90,14 @@ pub struct RobotCommand {
     pub use_joint_positions: bool,
     pub joint_positions: Vec<f64>,
     // If executing a 'move_l', a preferred joint configuration
-    // can be set, so that the IK solver can choose it if possible.
+    // can be set, so that the IK solver can choose something close to it if possible.
     pub use_preferred_joint_config: bool,
     pub preferred_joint_config: Vec<f64>,
     // If a payload should be used. Mass, CoG and Inertia can be set.
     pub use_payload: bool,
     pub payload: String,
     // base_link if simulation, base if real or ursim
-    // pub baseframe_id: String, 
+    // pub baseframe_id: String,
     // usually tool0, but could be rsp if that is the setup
     // pub faceplate_id: String,
     // Name of the frame to go to.
@@ -105,11 +105,10 @@ pub struct RobotCommand {
     // Name of the TCP to be used to go to the goal feature frame.
     // pub tcp_id: String,
     // Calculated transforms with the lookup
-    pub target_in_base: String,  // use pose_to_string
+    pub target_in_base: String, // use pose_to_string
     // pub set_tcp: bool, // if false, no tcp will be set (will remain 0.0.0.0.0.0.0)
     pub tcp_in_faceplate: String, // use pose_to_string
 }
-
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Payload {
@@ -151,9 +150,18 @@ impl Payload {
     pub fn to_string(&self) -> String {
         format!(
             "{},[{},{},{}],[{},{},{},{},{},{}]",
-            self.mass, self.cog_x, self.cog_y, self.cog_z, self.ixx, self.iyy, self.izz, self.ixy, self.ixz, self.iyz
-        ) 
-    } 
+            self.mass,
+            self.cog_x,
+            self.cog_y,
+            self.cog_z,
+            self.ixx,
+            self.iyy,
+            self.izz,
+            self.ixy,
+            self.ixz,
+            self.iyz
+        )
+    }
 }
 
 // pub fn payload_to_string(p: Payload) -> String {
@@ -162,7 +170,6 @@ impl Payload {
 //         p.mass, p.cog_x, p.cog_y, p.cog_z, p.ixx, p.iyy, p.izz, p.ixy, p.ixz, p.iyz
 //     )
 // }
-
 
 // fn joint_vector_to_string(j: &[f64]) -> String {
 //     match j.len() == 6 {
@@ -176,21 +183,24 @@ pub fn transform_to_string(tf_stamped: &SPTransformStamped) -> String {
     let y = tf_stamped.transform.translation.y;
     let z = tf_stamped.transform.translation.z;
     let rot = tf_stamped.transform.rotation.clone();
+    let angle = 2.0 * rot.w.acos();
+    let den = (1.0 - rot.w.powi(2)).sqrt();
 
     // Normalize quaternion for safety
     let norm = (rot.w.powi(2) + rot.x.powi(2) + rot.y.powi(2) + rot.z.powi(2)).sqrt();
-    let w = rot.w / norm;
+
     let x_r = rot.x / norm;
     let y_r = rot.y / norm;
     let z_r = rot.z / norm;
 
-    let angle = 2.0 * w.acos();
-    let den = (1.0 - w.powi(2)).sqrt();
-
     let (rx, ry, rz) = if den.abs() < f64::EPSILON {
         (x_r * angle, y_r * angle, z_r * angle)
     } else {
-        ((x_r / den) * angle, (y_r / den) * angle, (z_r / den) * angle)
+        (
+            (x_r / den) * angle,
+            (y_r / den) * angle,
+            (z_r / den) * angle,
+        )
     };
 
     format!("p[{},{},{},{},{},{}]", x, y, z, rx, ry, rz)
@@ -217,7 +227,7 @@ impl Default for URDFParameters {
             safety_k_position: 20.0,
             description_file: "TODO!".to_string(),
             rviz_config_file: "TODO!".to_string(),
-            tf_prefix: "".to_string()
+            tf_prefix: "".to_string(),
         }
     }
 }

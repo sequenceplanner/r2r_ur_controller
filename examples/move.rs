@@ -1,6 +1,4 @@
 use std::error::Error;
-use std::sync::{Arc, Mutex};
-use r2r_ur_controller::generate_robot_interface_state;
 use tokio::{
     sync::{mpsc, oneshot},
     time::{interval, Duration},

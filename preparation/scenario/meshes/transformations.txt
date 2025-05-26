@@ -1,0 +1,84 @@
+floor to gantry:
+x: 806.4 mm
+y: 1898.11 mm
+z: 1781.5 mm
+r_x: 90 deg (1.57080 rad)
+r_y: 90 deg (1.57080 rad)
+r_z: 0.0 deg
+
+gantry_to_vagn:
+x: 137.2 mm
+y: 148.3 mm
+z: 0.0 mm
+r_x: 90 deg (1.57080 rad)
+r_y: 90 deg (1.57080 rad)
+r_z: 90 deg (1.57080 rad)
+
+vagn to bvt_home:
+x: 338.4855 mm
+y: 333.8833 mm
+z: 733.6902 mm
+r_x: 0.0 deg
+r_y: 45 deg (0.78540 rad)
+r_z: 135 deg (2.35619 rad)
+
+vagn to svt_home:
+x: 175.7195 mm
+y: 334.1317 mm
+z: 570.924 mm
+r_x: 0.0 deg
+r_y: 45 deg (0.78540 rad)
+r_z: 135 deg (2.35619 rad)
+
+vagn to grip_home:
+x: 175.56 mm
+y: 497.95 mm
+z: 570.8 mm
+r_x: 0.0 deg
+r_y: 45 deg (0.78540 rad)
+r_z: 135 deg (2.35619 rad)
+
+vagn to cam_home:
+x: 232.288 mm
+y: 498 mm
+z: 627.493 mm
+r_x: 0.0 deg
+r_y: 45 deg (0.78540 rad)
+r_z: 135 deg (2.35619 rad)
+
+vagn_to_sponge_home:
+x: 175.72 mm
+y: 219 mm
+z: 570.92 mm
+r_x: 0.0 deg
+r_y: 45 deg (0.78540 rad)
+r_z: 135 deg (2.35619 rad)
+
+tool0 to rsp_frame:
+z: 27 mm
+
+rsp_frame to bvt_tcp_frame:
+z: 313.36500 mm
+
+rsp_frame to svt_tcp_frame:
+z: 313.36500 mm
+
+rsp_frame to cam_frame:
+x: 144.76945 mm
+y: 8.1 mm
+z: 107.70356 mm
+
+r_x: 15.45 deg (0.26965 rad)
+r_y: 0.0 deg
+r_z: 15.45 deg (0.26965 rad)
+
+rsp_frame to grip_frame:
+z: 240.67503 mm
+
+rsp_and_plate_in_tool0 to rsp_and_plate:
+x: 0.0
+y: 0.0
+z: 37 mm
+r_x: 22.5 deg (0.39270 rad)
+r_y: 22.5 deg (0.39270 rad)
+r_z: 0.0 deg

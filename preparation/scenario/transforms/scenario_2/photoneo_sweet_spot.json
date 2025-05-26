@@ -1,0 +1,21 @@
+{
+    "child_frame_id": "photoneo_sweet_spot",     
+    "parent_frame_id": "photoneo",
+    "transform": {
+        "translation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.642
+        },
+        "rotation": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 0.0
+        }
+    },
+    "metadata": {
+        "enable_transform": true,
+        "active_transform": false
+    }
+}

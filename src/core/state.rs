@@ -39,6 +39,7 @@ pub fn generate_robot_interface_state(robot_name: &str) -> State {
     let tcp_id = v!(&&format!("{}_tcp_id", robot_name));
     let root_frame_id = v!(&&format!("{}_root_frame_id", robot_name));
     let cancel_current_goal = bv!(&&format!("{}_cancel_current_goal", robot_name));
+    let estimated_position = v!(&&format!("{}_estimated_position", robot_name));
 
     let state = state.add(assign!(command_type, SPValue::String(StringOrUnknown::UNKNOWN)));
     let state = state.add(assign!(accelleration, SPValue::Float64(FloatOrUnknown::UNKNOWN)));
@@ -62,6 +63,7 @@ pub fn generate_robot_interface_state(robot_name: &str) -> State {
     let state = state.add(assign!(tcp_id, SPValue::String(StringOrUnknown::UNKNOWN)));
     let state = state.add(assign!(root_frame_id, SPValue::String(StringOrUnknown::UNKNOWN)));
     let state = state.add(assign!(cancel_current_goal, SPValue::Bool(BoolOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(estimated_position, SPValue::String(StringOrUnknown::UNKNOWN)));
 
     state
 }

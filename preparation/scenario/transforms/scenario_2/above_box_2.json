@@ -1,0 +1,21 @@
+{
+    "child_frame_id": "above_box_2",
+    "parent_frame_id": "box_2",
+    "transform": {
+        "translation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.3
+        },
+        "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+        }
+    },
+    "metadata": {
+        "enable_transform": true,
+        "active_transform": false
+    }
+}

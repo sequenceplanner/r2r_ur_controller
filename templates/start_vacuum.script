@@ -1,4 +1,4 @@
-def start_vacuum_script():
+def script():
   set_tool_digital_out(1, True)
+  return True
 end
-start_vacuum_script()

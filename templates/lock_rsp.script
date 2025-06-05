@@ -1,4 +1,4 @@
-def lock_rsp():
+def script():
   set_standard_digital_out(1, False)
+  return True
 end
-start_vacuum_script()

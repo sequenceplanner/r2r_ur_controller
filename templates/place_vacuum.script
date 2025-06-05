@@ -1,4 +1,4 @@
-def place():
+def script():
   set_target_payload(0.710,[0.006,-0.023,0.062],[0.0,0.0,0.0,0.0,0.0,0.0])
   move_done = False
   force_done = False
@@ -31,5 +31,5 @@ def place():
   stopj(5.0)
   sleep(0.5)
   movel(pose_trans(get_forward_kin(), p[0.0, 0.0, 0.1, 0.0, 0.0, 0.0]),a=0.1,v=0.05)
+  return True
 end
-place()

@@ -36,5 +36,5 @@ def script():
     return False
   end
   {%- endif %}
+  return True
 end
-script()

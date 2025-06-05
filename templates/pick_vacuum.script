@@ -1,4 +1,4 @@
-def pick_vacuum():
+def script():
   {%- if use_payload %}
   set_target_payload({{ payload }})
   {%- endif %}
@@ -71,5 +71,5 @@ def pick_vacuum():
   if force_up_done:
     movel(pose_trans(get_forward_kin(), p[0.0, 0.0, 0.1, 0.0, 0.0, 0.0]),a=0.1,v=0.05)
   end
+  return True
 end
-pick_vacuum()

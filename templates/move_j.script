@@ -5,13 +5,14 @@ def script():
   set_tcp({{ tcp_in_faceplate }})
   {% if use_joint_positions -%}
   socket_send_line("movej without inverse kinematics starting.", "ur_driver_socket")
-  movej({{ joint_positions }}, a={{ acceleration }}, v={{ velocity }}
+  movej({{ joint_positions }}, a={{ accelleration }}, v={{ velocity }}
   {%- if use_execution_time -%}
   , t={{ execution_time }}
   {%- endif -%}
   {%- if use_blend_radius -%}
   , r={{ blend_radius }}
   {%- endif -%})
+  return True
   {% else -%}
   if get_inverse_kin_has_solution({{ target_in_base }}
   {%- if use_preferred_joint_config -%}
@@ -22,7 +23,7 @@ def script():
       {%- if use_preferred_joint_config -%}
       , qnear={{ preferred_joint_config }}
       {%- endif -%})
-    , a={{ acceleration }}, v={{ velocity }}
+    , a={{ accelleration }}, v={{ velocity }}
     {%- if use_execution_time -%}
     , t={{ execution_time }}
     {%- endif -%}

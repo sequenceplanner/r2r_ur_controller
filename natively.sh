@@ -6,14 +6,15 @@ export URDF_DIR="/home/endre/r2r_ws/src/ur_description/urdf"
 export TEMPLATES_DIR="/home/endre/r2r_ws/src/r2r_ur_controller/templates"
 
 # UR_ADDRESS: Choose one by uncommenting the desired line and commenting out the others.
-# export UR_ADDRESS="192.168.1.31" # Real UR robot addr
+export UR_ADDRESS="192.168.1.31" # Real UR robot addr
 # export UR_ADDRESS="127.0.0.1" # DockURSim natively
-export UR_ADDRESS="172.17.0.1" # DockURSim Via Docker (Currently active)
+# export UR_ADDRESS="172.17.0.1" # DockURSim Via Docker (Currently active)
 
 # OVERRIDE_HOST: The last assignment takes precedence.
 # export OVERRIDE_HOST="FALSE"
 export OVERRIDE_HOST="TRUE" # This will be the effective value
-export OVERRIDE_HOST_ADDRESS="172.17.0.1"
+export OVERRIDE_HOST_ADDRESS="192.168.1.31"
+# export OVERRIDE_HOST_ADDRESS="172.17.0.2"
 
 echo "Environment variables set:"
 echo "ROBOT_ID=${ROBOT_ID}"

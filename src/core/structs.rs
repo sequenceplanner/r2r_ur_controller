@@ -64,7 +64,7 @@ pub struct RobotCommand {
     pub command_type: String,
     // If command is 'move_j', joint acceleration of leading axis [rad/s^2].
     // If command is 'move_l', tool acceleration [m/s^2].
-    pub acceleration: f64,
+    pub accelleration: f64,
     // If command is 'move_j', joint velocity of leading axis [rad/s].
     // If command is 'move_l', tool velocity [m/s].
     pub velocity: f64,

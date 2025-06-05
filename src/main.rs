@@ -60,7 +60,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let arc_node = Arc::new(Mutex::new(node));
 
     let state = generate_robot_interface_state(&robot_id);
-    let (tx, rx) = mpsc::channel(50);
+    let (tx, rx) = mpsc::channel(500);
 
     tokio::task::spawn(async move {
         match redis_state_manager(rx, state).await {
@@ -134,6 +134,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // println!("local: {:?}", transform_buffer.get_local_transform_names());
     // println!("global: {:?}", transform_buffer.get_global_transform_names());
 
+
+    let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
+    let tx_clone = tx.clone();
+    let robot_id_clone = robot_id.clone();
+    tokio::task::spawn(async move {
+        match action_client(&robot_id_clone, arc_node_clone, tx_clone, &templates).await {
+            Ok(()) => (),
+            Err(e) => {
+                log::error!(target: &&format!("main robot runner"), "failed with: {}", e)
+            }
+        }
+    });
+
     let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
     let tx_clone = tx.clone();
     let robot_id_clone = robot_id.clone();
@@ -152,29 +165,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .unwrap()
     });
 
-    let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
-    let tx_clone = tx.clone();
-    let robot_id_clone = robot_id.clone();
-    tokio::task::spawn(async move {
-        action_client(&robot_id_clone, arc_node_clone, tx_clone, &templates)
-            .await
-            .unwrap()
-    });
 
-    tokio::task::spawn(async move {
-        ur_script_driver(
-            Some(ur_address),
-            if override_host {
-                Some(override_host_addess)
-            } else {
-                None
-            },
-        )
-        .await
-        .unwrap()
-    });
+    // tokio::task::spawn(async move {
+    //     ur_script_driver(
+    //         Some(ur_address),
+    //         if override_host {
+    //             Some(override_host_addess)
+    //         } else {
+    //             None
+    //         },
+    //     )
+    //     .await
+    //     .unwrap()
+    // });
 
-    tokio::task::spawn(async move { robot_state_publisher(&urdf, "").await.unwrap() });
+    // tokio::task::spawn(async move { robot_state_publisher(&urdf, "").await.unwrap() });
 
     // let mut ghost_params = URDFParameters::default();
     // ghost_params.tf_prefix = "ghost_".to_string();

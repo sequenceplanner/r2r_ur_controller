@@ -1,0 +1,4 @@
+def unlock_rsp():
+  set_standard_digital_out(1, True)
+end
+start_vacuum_script()

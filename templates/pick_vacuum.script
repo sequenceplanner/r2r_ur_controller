@@ -8,7 +8,7 @@ def pick_vacuum():
   force_up_done = False
   thread move_thread_down():
     set_tcp({{ tcp_in_faceplate }})
-      movel({{ target_in_base }}, a={{ acceleration }}, v={{ velocity }}
+      movel({{ target_in_base }}, a={{ accelleration }}, v={{ velocity }}
       {%- if use_execution_time -%}
       , t={{ execution_time }}
       {%- endif -%}
@@ -43,7 +43,7 @@ def pick_vacuum():
   sleep(0.5)
   thread move_thread_up():
     set_tcp({{ tcp_in_faceplate }})
-    movel(pose_trans(get_forward_kin(), {{ move_up_relative_pose }}),a={{ move_up_acceleration }},v={{ move_up_velocity }})
+    movel(pose_trans(get_forward_kin(), {{ move_up_relative_pose }}),a={{ move_up_accelleration }},v={{ move_up_velocity }})
     move_up_done = True
   end
   thread force_thread_up():

@@ -3,6 +3,7 @@ use tokio::process::Command;
 use tokio::task::JoinHandle;
 
 pub async fn robot_state_publisher(urdf: &str, namespace: &str) -> Result<JoinHandle<()>, Box<dyn Error>> {
+    tokio::time::sleep(std::time::Duration::from_millis(100)).await;
     let urdf_owned = urdf.to_string();
     let namespace_owned = namespace.to_string();
     let child_future = async move {

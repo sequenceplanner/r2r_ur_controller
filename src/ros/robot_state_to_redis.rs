@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
 use tokio::sync::mpsc;
 
-use futures::StreamExt;
+use futures::{Stream, StreamExt};
 // use micro_sp::ToSPValue;
 use micro_sp::*;
 use r2r::QosProfile;
@@ -36,14 +36,11 @@ fn tf_to_sp_tf(tf: TransformStamped) -> SPTransformStamped {
 
 pub async fn robot_state_to_redis(
     robot_name: &str,
-    arc_node: Arc<Mutex<r2r::Node>>,
+    mut subscriber: impl Stream<Item = TFMessage> + Unpin,
     state_mgmt: mpsc::Sender<StateManagement>, // instead of &Arc<Mutex<State>>
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut subscriber = arc_node
-        .lock()
-        .unwrap()
-        // &format!("{robot_name}_dashboard_server")
-        .subscribe::<TFMessage>("tf", QosProfile::volatile(QosProfile::default()))?;
+    tokio::time::sleep(std::time::Duration::from_millis(2000)).await;
+
 
     for initial in vec![
         ("base_link", "base_link_inertia"),

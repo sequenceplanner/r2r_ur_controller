@@ -1,0 +1,35 @@
+{
+    "show": true,
+    "active": false,
+    "child_frame": "gantry_home",
+    "parent_frame": "gantry",
+    "transform": {
+        "translation": {
+            "x": 0.0,
+            "y": 3.27,
+            "z": 0.0
+        },
+        "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+        }
+    },
+    "secondary_transforms": [],
+    "visualization": {
+        "mesh": "",
+        "show_mesh": false,
+        "interactive": false,
+        "quantity": 1.0,
+        "marker_scale": 0.5,
+        "fixed_marker": false,
+        "scale_x": 0.001,
+        "scale_y": 0.001,
+        "scale_z": 0.001,
+        "color_a": 1.0,
+        "color_r": 0.45,
+        "color_g": 0.45,
+        "color_b": 0.45
+    }
+}

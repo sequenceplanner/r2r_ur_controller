@@ -39,7 +39,7 @@ pub async fn robot_state_to_redis(
     mut subscriber: impl Stream<Item = TFMessage> + Unpin,
     state_mgmt: mpsc::Sender<StateManagement>, // instead of &Arc<Mutex<State>>
 ) -> Result<(), Box<dyn std::error::Error>> {
-    tokio::time::sleep(std::time::Duration::from_millis(2000)).await;
+    tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
 
 
     for initial in vec![
@@ -71,8 +71,10 @@ pub async fn robot_state_to_redis(
     }
 
     loop {
+        
         match subscriber.next().await {
             Some(message) => {
+                // log::error!(target: "asdfasdf", "got tf: {:?}", message);
                 for tf in &message.transforms {
                     if tf.child_frame_id == "base_link_inertia" {
                         state_mgmt

@@ -1,0 +1,43 @@
+{
+    "show": true,
+    "active": true,
+    "child_frame": "bvt_home",
+    "parent_frame": "vagn",
+    "transform": {
+        "translation": {
+            "x": 0.49238249412218116,
+            "y": 0.581318429648701,
+            "z": -0.18463799982811405
+        },
+        "rotation": {
+            "x": 0.9222711570956479,
+            "y": -0.0056220281596252595,
+            "z": 0.00041462685037519216,
+            "w": 0.3865024368272497
+        }
+    },
+    "preferred_joint_configuration": {
+        "j0": -1.3542645613299769,
+        "j1": -0.5450036090663453,
+        "j2": 1.7776663939105433,
+        "j3": -2.0167647800841273,
+        "j4": -1.4155119101153772,
+        "j5": 3.6785693168640137
+    },
+    "secondary_transforms": [],
+    "visualization": {
+        "mesh": "",
+        "show_mesh": false,
+        "interactive": false,
+        "quantity": 1.0,
+        "marker_scale": 1.0,
+        "fixed_marker": false,
+        "scale_x": 1.0,
+        "scale_y": 1.0,
+        "scale_z": 1.0,
+        "color_a": 1.0,
+        "color_r": 0.2,
+        "color_g": 0.2,
+        "color_b": 0.2
+    }
+}

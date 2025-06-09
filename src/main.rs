@@ -64,13 +64,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let node = r2r::Node::create(ctx, NODE_ID, "")?;
     let arc_node = Arc::new(Mutex::new(node));
 
-    let mut tf_subscriber = arc_node
+    let tf_subscriber = arc_node
         .lock()
         .unwrap()
-        // &format!("{robot_name}_dashboard_server")
         .subscribe::<TFMessage>("tf", QosProfile::volatile(QosProfile::default()))?;
 
-    let mut joint_subsc = arc_node
+    let joint_subsc = arc_node
         .lock()
         .unwrap()
         // &format!("{robot_name}_dashboard_server")
@@ -199,7 +198,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .unwrap()
     });
 
-    // tokio::task::spawn(async move { robot_state_publisher(&urdf, "").await.unwrap() });
+    tokio::task::spawn(async move { robot_state_publisher(&urdf, "").await.unwrap() });
 
     // let mut ghost_params = URDFParameters::default();
     // ghost_params.tf_prefix = "ghost_".to_string();

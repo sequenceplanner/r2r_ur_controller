@@ -15,6 +15,7 @@ pub async fn ur_script_driver(ur_address: Option<String>, override_host_address:
                 None => "".to_string()
 
             })
+            .arg("-p")
             .arg(match override_host_address {
                 Some(override_host_addr) => format!("override_host_address:={}", override_host_addr),
                 None => "".to_string()

@@ -9,6 +9,7 @@ pub async fn ur_script_driver(ur_address: Option<String>, override_host_address:
             .arg("ur_script_driver")
             .arg("ur_script_driver")
             .arg("--ros-args")
+            // .arg(format!("--ros-args -p ur_address:=192.168.1.31 -p override_host_address:=192.168.1.15"))
             .arg("-p")
             .arg(match ur_address {
                 Some(ur_addr) => format!("ur_address:={}", ur_addr),

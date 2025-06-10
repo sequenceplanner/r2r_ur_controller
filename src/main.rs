@@ -43,7 +43,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             false
         }
     };
-    let override_host_addess =
+    let override_host_address =
         std::env::var("OVERRIDE_HOST_ADDRESS").expect("OVERRIDE_HOST_ADDRESS is not set");
     let ur_address = std::env::var("UR_ADDRESS").expect("UR_ADDRESS is not set");
 
@@ -188,11 +188,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     tokio::task::spawn(async move {
         ur_script_driver(
             Some(ur_address),
-            if override_host {
-                Some(override_host_addess)
-            } else {
-                None
-            },
+            Some(override_host_address)
         )
         .await
         .unwrap()

@@ -13,7 +13,7 @@ export UR_ADDRESS="192.168.1.31" # Real UR robot addr
 # OVERRIDE_HOST: The last assignment takes precedence.
 # export OVERRIDE_HOST="FALSE"
 export OVERRIDE_HOST="TRUE" # This will be the effective value
-export OVERRIDE_HOST_ADDRESS="192.168.1.31"
+export OVERRIDE_HOST_ADDRESS="192.168.1.10"
 # export OVERRIDE_HOST_ADDRESS="172.17.0.2"
 
 echo "Environment variables set:"

@@ -1,35 +1,33 @@
 use r2r::sensor_msgs::msg::JointState;
-use std::sync::{Arc, Mutex};
-use tokio::sync::mpsc;
+use std::sync::Arc;
 
 use futures::{Stream, StreamExt};
 use micro_sp::ToSPValue;
 use micro_sp::*;
-use r2r::QosProfile;
 
 pub async fn joint_subscriber(
     robot_name: &str,
     mut subscriber: impl Stream<Item = JointState> + Unpin,
-    state_mgmt: mpsc::Sender<StateManagement>, // instead of &Arc<Mutex<State>>
+    connection_manager: &Arc<ConnectionManager>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    // tokio::time::sleep(std::time::Duration::from_millis(2000)).await;
-    // let mut subscriber = arc_node
-    //     .lock()
-    //     .unwrap()
-    //     // &format!("{robot_name}_dashboard_server")
-    //     .subscribe::<JointState>("joint_states", QosProfile::default())?;
-
+    let mut con = connection_manager.get_connection().await;
     loop {
         match subscriber.next().await {
             Some(message) => {
+                if !connection_manager
+                    .test_connection(&format!("{robot_name}_action_client"))
+                    .await
+                {
+                    continue;
+                }
                 let joint_states = message.position;
 
-                state_mgmt
-                    .send(StateManagement::Set((
-                        format!("{robot_name}_joint_states"),
-                        joint_states.to_spvalue(),
-                    )))
-                    .await?;
+                StateManager::set_sp_value(
+                    &mut con,
+                    &format!("{robot_name}_joint_states"),
+                    &joint_states.to_spvalue(),
+                )
+                .await;
             }
             None => {
                 r2r::log_error!(

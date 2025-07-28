@@ -4,13 +4,10 @@ use r2r::tf2_msgs::msg::TFMessage;
 use r2r_ur_controller::ros::robot_state_to_redis::robot_state_to_redis;
 use r2r_ur_controller::*;
 use std::path::PathBuf;
-use tokio::time::interval;
 use r2r::QosProfile;
 
 use std::error::Error;
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
-use tokio::sync::mpsc;
 
 // This is a test, use the following as an example in your code
 pub static NODE_ID: &'static str = "r2r_ur_controller";
@@ -28,7 +25,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     };
     let urdf_dir = std::env::var("URDF_DIR").expect("URDF_DIR is not set");
     let templates_dir = std::env::var("TEMPLATES_DIR").expect("TEMPLATES_DIR is not set");
-    let override_host = match std::env::var("OVERRIDE_HOST") {
+    let _override_host = match std::env::var("OVERRIDE_HOST") {
         Ok(val_str) => match val_str.to_lowercase().parse::<bool>() {
             Ok(b_val) => b_val,
             Err(e) => {
@@ -76,14 +73,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .subscribe::<JointState>("joint_states", QosProfile::default())?;
 
     let state = generate_robot_interface_state(&robot_id);
-    let (tx, rx) = mpsc::channel(500);
 
-    tokio::task::spawn(async move {
-        match redis_state_manager(rx, state).await {
-            Ok(()) => (),
-            Err(e) => log::error!(target: &&format!("r2r_ur_controller"), "{}", e),
-        };
-    });
+    let connection_manager = ConnectionManager::new().await;
+    StateManager::set_state(&mut connection_manager.get_connection().await, state).await;
+    let con_arc = Arc::new(connection_manager);
 
     let templates: tera::Tera = {
         let tera = match tera::Tera::new(&format!("{}/*.script", templates_dir)) {
@@ -151,10 +144,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // println!("global: {:?}", transform_buffer.get_global_transform_names());
 
     let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
-    let tx_clone = tx.clone();
+    let con_arc_clone = con_arc.clone();
     let robot_id_clone = robot_id.clone();
     tokio::task::spawn(async move {
-        match action_client(&robot_id_clone, arc_node_clone, tx_clone, &templates).await {
+        match action_client(&robot_id_clone, arc_node_clone, &con_arc_clone, &templates).await {
             Ok(()) => (),
             Err(e) => {
                 log::error!(target: &&format!("main robot runner"), "failed with: {}", e)
@@ -162,10 +155,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
     });
 
-    let tx_clone = tx.clone();
+    let con_arc_clone = con_arc.clone();
     let robot_id_clone = robot_id.clone();
     tokio::task::spawn(async move {
-        match joint_subscriber(&robot_id_clone, joint_subsc, tx_clone).await {
+        match joint_subscriber(&robot_id_clone, joint_subsc, &con_arc_clone).await {
             Ok(()) => (),
             Err(e) => {
                 log::error!(target: &&format!("main robot runner"), "failed with: {}", e)
@@ -173,11 +166,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
     });
 
-    // let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
-    let tx_clone = tx.clone();
+    let con_arc_clone = con_arc.clone();
     let robot_id_clone = robot_id.clone();
     tokio::task::spawn(async move {
-        match robot_state_to_redis(&robot_id_clone, tf_subscriber, tx_clone).await {
+        match robot_state_to_redis(&robot_id_clone, tf_subscriber, &con_arc_clone).await {
             Ok(()) => (),
             Err(e) => {
                 log::error!(target: &&format!("main robot runner"), "failed with: {}", e)

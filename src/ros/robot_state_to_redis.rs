@@ -53,7 +53,7 @@ pub async fn robot_state_to_redis(
     ];
 
     let mut con = connection_manager.get_connection().await;
-    StateManager::insert_transforms(
+    TransformsManager::insert_transforms(
         &mut con,
         HashMap::from(
             initial
@@ -80,10 +80,7 @@ pub async fn robot_state_to_redis(
     loop {
         match subscriber.next().await {
             Some(message) => {
-                if !connection_manager
-                    .test_connection(&format!("{robot_name}_action_client"))
-                    .await
-                {
+                if let Err(_) = connection_manager.check_redis_health(&&format!("{robot_name}_action_client")).await {
                     continue;
                 }
                 let links_to_move = [
@@ -102,7 +99,7 @@ pub async fn robot_state_to_redis(
 
                 for tf in &message.transforms {
                     if links_to_move.contains(&tf.child_frame_id.as_str()) {
-                        StateManager::move_transform(
+                        TransformsManager::move_transform(
                             &mut con,
                             &tf.child_frame_id,
                             tf_to_sp_tf(tf.clone()).transform,

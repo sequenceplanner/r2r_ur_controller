@@ -14,10 +14,7 @@ pub async fn joint_subscriber(
     loop {
         match subscriber.next().await {
             Some(message) => {
-                if !connection_manager
-                    .test_connection(&format!("{robot_name}_action_client"))
-                    .await
-                {
+                if let Err(_) = connection_manager.check_redis_health("joint_subscriber").await {
                     continue;
                 }
                 let joint_states = message.position;

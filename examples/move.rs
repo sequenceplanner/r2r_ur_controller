@@ -48,7 +48,7 @@ async fn trigger(connection_manager: Arc<ConnectionManager>) -> Result<(), Box<d
         .update("r1_command_type", "move_j".to_spvalue());
 
     let modified_state = state.get_diff_partial_state(&new_state);
-    StateManager::set_state(&mut con, modified_state).await;
+    StateManager::set_state(&mut con, &modified_state).await;
 
     tokio::time::sleep(std::time::Duration::from_millis(500)).await;
 
@@ -57,7 +57,7 @@ async fn trigger(connection_manager: Arc<ConnectionManager>) -> Result<(), Box<d
         .update("r1_request_state", "initial".to_spvalue());
 
     let modified_state = state.get_diff_partial_state(&new_state);
-    StateManager::set_state(&mut con, modified_state).await;
+    StateManager::set_state(&mut con, &modified_state).await;
 
     Ok(())
 }

@@ -22,6 +22,7 @@ pub async fn action_client(
     connection_manager: &Arc<ConnectionManager>,
     templates: &tera::Tera,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    let log_target = &format!("{robot_name}_action_client");
     let client = arc_node
         .lock()
         .unwrap()
@@ -29,13 +30,13 @@ pub async fn action_client(
     // let waiting_for_server = r2r::Node::is_available(&client)?;
 
     r2r::log_warn!(
-        &format!("{robot_name}_action_client"),
+        &log_target,
         "Waiting for the {robot_name} control action server..."
     );
 
     // waiting_for_server.await?;
     r2r::log_info!(
-        &format!("{robot_name}_action_client"),
+        &log_target,
         "Robot {robot_name} control action server available."
     );
 
@@ -78,10 +79,7 @@ pub async fn action_client(
     let mut con = connection_manager.get_connection().await;
     'scan: loop {
         timer.tick().await?;
-        if !connection_manager
-            .test_connection(&format!("{robot_name}_action_client"))
-            .await
-        {
+        if let Err(_) = connection_manager.check_redis_health(&log_target).await {
             continue;
         }
         let state = match StateManager::get_state_for_keys(&mut con, &keys).await {
@@ -89,71 +87,67 @@ pub async fn action_client(
             None => continue,
         };
 
-        let mut request_trigger = state.get_bool_or_default_to_false(
-            &format!("{robot_name}_action_client"),
-            &format!("{robot_name}_request_trigger"),
-        );
+        let mut request_trigger = state
+            .get_bool_or_default_to_false(&format!("{robot_name}_request_trigger"), &log_target);
 
-        let mut request_state = state.get_string_or_default_to_unknown(
-            &format!("{robot_name}_action_client"),
-            &format!("{robot_name}_request_state"),
-        );
+        let mut request_state = state
+            .get_string_or_default_to_unknown(&format!("{robot_name}_request_state"), &log_target);
 
         if request_trigger {
             request_trigger = false;
             if request_state == ActionRequestState::Initial.to_string() {
                 let command_type = state.get_string_or_default_to_unknown(
-                    &format!("{robot_name}_action_client"),
                     &format!("{robot_name}_command_type"),
+                    &log_target,
                 );
 
                 let accelleration = state.get_float_or_default_to_zero(
-                    &format!("{robot_name}_action_client"),
                     &format!("{robot_name}_accelleration"),
+                    &log_target,
                 );
 
-                let velocity = state.get_float_or_default_to_zero(
-                    &format!("{robot_name}_action_client"),
-                    &format!("{robot_name}_velocity"),
-                );
+                let velocity = state
+                    .get_float_or_default_to_zero(&format!("{robot_name}_velocity"), &log_target);
 
                 let global_acceleration_scaling = state.get_float_or_default_to_zero(
-                    &format!("{robot_name}_action_client"),
                     &format!("{robot_name}_global_acceleration_scaling"),
+                    &log_target,
                 );
 
                 let global_velocity_scaling = state.get_float_or_default_to_zero(
-                    &format!("{robot_name}_action_client"),
                     &format!("{robot_name}_global_velocity_scaling"),
+                    &log_target,
                 );
 
                 let use_execution_time = state.get_bool_or_default_to_false(
-                    &format!("{robot_name}_action_client"),
                     &format!("{robot_name}_use_execution_time"),
+                    &log_target,
                 );
 
                 let execution_time = state.get_float_or_default_to_zero(
-                    &format!("{robot_name}_action_client"),
                     &format!("{robot_name}_execution_time"),
+                    &log_target,
                 );
 
                 let use_blend_radius = state.get_bool_or_default_to_false(
-                    &format!("{robot_name}_action_client"),
                     &format!("{robot_name}_use_blend_radius"),
+                    &log_target,
                 );
 
                 let blend_radius = state.get_float_or_default_to_zero(
-                    &format!("{robot_name}_action_client"),
                     &format!("{robot_name}_blend_radius"),
+                    &log_target,
                 );
 
                 let use_joint_positions = state.get_bool_or_default_to_false(
-                    &format!("{robot_name}_action_client"),
                     &format!("{robot_name}_use_joint_positions"),
+                    &log_target,
                 );
 
-                let joint_positions =
-                    match state.get_value(&format!("{robot_name}_joint_positions")) {
+                let joint_positions = if let Some(value) =
+                    state.get_value(&format!("{robot_name}_joint_positions"), &log_target)
+                {
+                    match value {
                         micro_sp::SPValue::Array(array_or_unknown) => match array_or_unknown {
                             ArrayOrUnknown::UNKNOWN => SAFE_HOME_JOINT_STATE.to_vec(),
                             ArrayOrUnknown::Array(values) => values
@@ -173,15 +167,20 @@ pub async fn action_client(
                                 .collect(),
                         },
                         _ => SAFE_HOME_JOINT_STATE.to_vec(),
-                    };
+                    }
+                } else {
+                    SAFE_HOME_JOINT_STATE.to_vec()
+                };
 
                 let use_preferred_joint_config = state.get_bool_or_default_to_false(
-                    &format!("{robot_name}_action_client"),
                     &format!("{robot_name}_use_preferred_joint_config"),
+                    &log_target,
                 );
 
-                let preferred_joint_config =
-                    match state.get_value(&format!("{robot_name}_preferred_joint_config")) {
+                let preferred_joint_config = if let Some(value) =
+                    state.get_value(&format!("{robot_name}_preferred_joint_config"), &log_target)
+                {
+                    match value {
                         micro_sp::SPValue::Array(array_or_unknown) => match array_or_unknown {
                             ArrayOrUnknown::UNKNOWN => SAFE_HOME_JOINT_STATE.to_vec(),
                             ArrayOrUnknown::Array(values) => values
@@ -201,45 +200,46 @@ pub async fn action_client(
                                 .collect(),
                         },
                         _ => SAFE_HOME_JOINT_STATE.to_vec(),
-                    };
+                    }
+                } else {
+                    SAFE_HOME_JOINT_STATE.to_vec()
+                };
 
                 let use_payload = state.get_bool_or_default_to_false(
-                    &format!("{robot_name}_action_client"),
                     &format!("{robot_name}_use_payload"),
+                    &log_target,
                 );
 
                 let payload = state.get_string_or_value(
-                    &format!("{robot_name}_action_client"),
                     &format!("{robot_name}_payload"),
                     Payload::default().to_string(),
+                    &log_target,
                 );
 
                 let baseframe_id = state.get_string_or_value(
-                    &format!("{robot_name}_action_client"),
                     &format!("{robot_name}_baseframe_id"),
                     DEFAULT_BASEFRAME_ID.to_string(),
+                    &log_target,
                 );
 
                 let faceplate_id = state.get_string_or_value(
-                    &format!("{robot_name}_action_client"),
                     &format!("{robot_name}_faceplate_id"),
                     DEFAULT_FACEPLATE_ID.to_string(),
+                    &log_target,
                 );
 
                 let goal_feature_id = state.get_string_or_default_to_unknown(
-                    &format!("{robot_name}_action_client"),
                     &format!("{robot_name}_goal_feature_id"),
+                    &log_target,
                 );
 
-                let tcp_id = state.get_string_or_default_to_unknown(
-                    &format!("{robot_name}_action_client"),
-                    &format!("{robot_name}_tcp_id"),
-                );
+                let tcp_id = state
+                    .get_string_or_default_to_unknown(&format!("{robot_name}_tcp_id"), &log_target);
 
                 let _root_frame_id = state.get_string_or_value(
-                    &format!("{robot_name}_action_client"),
                     &format!("{robot_name}_root_frame_id"),
                     DEFAULT_ROOT_FRAME_ID.to_string(),
+                    &log_target,
                 );
 
                 let mut target_in_base = transform_to_string(&SPTransformStamped {
@@ -253,7 +253,7 @@ pub async fn action_client(
                 });
                 let mut tcp_in_faceplate = target_in_base.clone();
                 if !use_joint_positions {
-                    target_in_base = match StateManager::lookup_transform(
+                    target_in_base = match TransformsManager::lookup_transform(
                         &mut con,
                         &baseframe_id,
                         &goal_feature_id,
@@ -264,16 +264,13 @@ pub async fn action_client(
                         None => continue 'scan,
                     };
 
-                    tcp_in_faceplate = match StateManager::lookup_transform(
-                        &mut con,
-                        &faceplate_id,
-                        &tcp_id,
-                    )
-                    .await
-                    {
-                        Some(transform) => transform_to_string(&transform),
-                        None => continue 'scan,
-                    };
+                    tcp_in_faceplate =
+                        match TransformsManager::lookup_transform(&mut con, &faceplate_id, &tcp_id)
+                            .await
+                        {
+                            Some(transform) => transform_to_string(&transform),
+                            None => continue 'scan,
+                        };
                 }
 
                 let robot_command = RobotCommand {
@@ -299,10 +296,7 @@ pub async fn action_client(
                 let script = match generate_script(robot_name, robot_command, templates) {
                     Ok(script) => script,
                     Err(_) => {
-                        r2r::log_error!(
-                            &format!("{robot_name}_action_client"),
-                            "Failed to generate UR Script."
-                        );
+                        r2r::log_error!("robot", "Failed to generate UR Script.");
 
                         continue 'scan;
                     }
@@ -314,12 +308,18 @@ pub async fn action_client(
                     Ok(x) => match x.await {
                         Ok(y) => y,
                         Err(e) => {
-                            r2r::log_info!("asdf", "Could not send goal request.");
+                            r2r::log_info!(
+                                &format!("{}_ur_controller", robot_name),
+                                "Could not send goal request."
+                            );
                             return Err(Box::new(e));
                         }
                     },
                     Err(e) => {
-                        r2r::log_info!("asdf", "Did not get goal.");
+                        r2r::log_info!(
+                            &format!("{}_ur_controller", robot_name),
+                            "Did not get goal."
+                        );
                         return Err(Box::new(e));
                     }
                 };
@@ -328,7 +328,7 @@ pub async fn action_client(
                     Ok((status, msg)) => match status {
                         r2r::GoalStatus::Aborted => {
                             r2r::log_error!(
-                                &format!("{robot_name}_action_client"),
+                                &format!("{}_ur_controller", robot_name),
                                 "Goal aborted, result is {}.",
                                 msg.ok
                             );
@@ -336,7 +336,7 @@ pub async fn action_client(
                         }
                         _ => {
                             r2r::log_info!(
-                                &format!("{robot_name}_action_client"),
+                                &format!("{}_ur_controller", robot_name),
                                 "Goal succeeded, result is {}.",
                                 msg.ok
                             );
@@ -345,7 +345,7 @@ pub async fn action_client(
                     },
                     Err(e) => {
                         r2r::log_error!(
-                            &format!("{robot_name}_action_client"),
+                            &format!("{}_ur_controller", robot_name),
                             "Goal failed with {}.",
                             e
                         );
@@ -383,12 +383,12 @@ fn generate_script(
             Ok(context) => context,
             Err(e) => {
                 r2r::log_error!(
-                    &format!("{robot_name}_action_client"),
+                    &format!("{}_ur_controller", robot_name),
                     "Creating a Tera Context from a serialized Interpretation failed with: {e}.",
                 );
                 // Err(Box::new(e))
                 r2r::log_error!(
-                    &format!("{robot_name}_action_client"),
+                    &format!("{}_ur_controller", robot_name),
                     "An empty Tera Context will be used instead."
                 );
                 &empty_context
@@ -398,7 +398,7 @@ fn generate_script(
         Ok(script) => Ok(script),
         Err(e) => {
             r2r::log_error!(
-                &format!("{robot_name}_action_client"),
+                &format!("{}_ur_controller", robot_name),
                 "Rendering the {}.script Tera Template failed with: {}.",
                 robot_command.command_type,
                 e

@@ -75,7 +75,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let state = generate_robot_interface_state(&robot_id);
 
     let connection_manager = ConnectionManager::new().await;
-    StateManager::set_state(&mut connection_manager.get_connection().await, state).await;
+    StateManager::set_state(&mut connection_manager.get_connection().await, &state).await;
     let con_arc = Arc::new(connection_manager);
 
     let templates: tera::Tera = {

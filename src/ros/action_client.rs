@@ -260,16 +260,16 @@ pub async fn action_client(
                     )
                     .await
                     {
-                        Some(transform) => transform_to_string(&transform),
-                        None => continue 'scan,
+                        Ok(transform) => transform_to_string(&transform),
+                        Err(_) => continue 'scan,
                     };
 
                     tcp_in_faceplate =
                         match TransformsManager::lookup_transform(&mut con, &faceplate_id, &tcp_id)
                             .await
                         {
-                            Some(transform) => transform_to_string(&transform),
-                            None => continue 'scan,
+                            Ok(transform) => transform_to_string(&transform),
+                            Err(_) => continue 'scan,
                         };
                 }
 

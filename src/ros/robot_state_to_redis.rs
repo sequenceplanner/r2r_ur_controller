@@ -1,7 +1,6 @@
 use ordered_float::OrderedFloat;
 use r2r::geometry_msgs::msg::TransformStamped;
 use r2r::tf2_msgs::msg::TFMessage;
-use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::SystemTime;
 
@@ -55,32 +54,28 @@ pub async fn robot_state_to_redis(
     let mut con = connection_manager.get_connection().await;
     TransformsManager::insert_transforms(
         &mut con,
-        HashMap::from(
-            initial
-                .iter()
-                .map(|t| {
-                    (
-                        t.1.to_string(),
-                        SPTransformStamped {
-                            active_transform: true,
-                            enable_transform: true,
-                            time_stamp: SystemTime::now(),
-                            parent_frame_id: t.0.to_string(),
-                            child_frame_id: t.1.to_string(),
-                            transform: SPTransform::default(),
-                            metadata: MapOrUnknown::UNKNOWN,
-                        },
-                    )
-                })
-                .collect::<HashMap<String, SPTransformStamped>>(),
-        ),
+        &initial
+            .iter()
+            .map(|t| SPTransformStamped {
+                active_transform: true,
+                enable_transform: true,
+                time_stamp: SystemTime::now(),
+                parent_frame_id: t.0.to_string(),
+                child_frame_id: t.1.to_string(),
+                transform: SPTransform::default(),
+                metadata: MapOrUnknown::UNKNOWN,
+            })
+            .collect::<Vec<SPTransformStamped>>(),
     )
-    .await;
+    .await?;
 
     loop {
         match subscriber.next().await {
             Some(message) => {
-                if let Err(_) = connection_manager.check_redis_health(&&format!("{robot_name}_action_client")).await {
+                if let Err(_) = connection_manager
+                    .check_redis_health(&&format!("{robot_name}_action_client"))
+                    .await
+                {
                     continue;
                 }
                 let links_to_move = [
@@ -104,7 +99,7 @@ pub async fn robot_state_to_redis(
                             &tf.child_frame_id,
                             tf_to_sp_tf(tf.clone()).transform,
                         )
-                        .await;
+                        .await?;
                     }
                 }
             }

@@ -43,7 +43,7 @@ def script():
   sleep(0.5)
   thread move_thread_up():
     set_tcp({{ tcp_in_faceplate }})
-    movel(pose_trans(get_forward_kin(), {{ move_up_relative_pose }}),a={{ move_up_accelleration }},v={{ move_up_velocity }})
+    movel(pose_trans(get_forward_kin(), p[0.0, 0.0, 0.1, 0.0, 0.0, 0.0]),a={{ accelleration }},v={{ velocity }})
     move_up_done = True
   end
   thread force_thread_up():

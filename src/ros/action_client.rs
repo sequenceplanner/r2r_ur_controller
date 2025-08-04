@@ -71,6 +71,7 @@ pub async fn action_client(
         format!("{}_goal_feature_id", robot_name),
         format!("{}_tcp_id", robot_name),
         format!("{}_root_frame_id", robot_name),
+        format!("{}_pnp_force_threshold", robot_name),
     ]
     .iter()
     .map(|k| k.to_string())
@@ -141,6 +142,11 @@ pub async fn action_client(
 
                 let use_joint_positions = state.get_bool_or_default_to_false(
                     &format!("{robot_name}_use_joint_positions"),
+                    &log_target,
+                );
+
+                let pnp_force_threshold = state.get_float_or_default_to_zero(
+                    &format!("{robot_name}_pnp_force_threshold"),
                     &log_target,
                 );
 
@@ -291,6 +297,7 @@ pub async fn action_client(
                     payload,
                     target_in_base,
                     tcp_in_faceplate,
+                    pnp_force_threshold
                 };
 
                 let script = match generate_script(robot_name, robot_command, templates) {

@@ -1,75 +1,95 @@
+# These flags are visible to the main script and all threads.
+global move_done = False
+global force_detected = False
+
 def script():
-  {%- if use_payload %}
-  set_target_payload({{ payload }})
-  {%- endif %}
-  move_down_done = False
-  force_down_done = False
-  move_up_done = False
-  force_up_done = False
-  thread move_thread_down():
-    set_tcp({{ tcp_in_faceplate }})
-      movel({{ target_in_base }}, a={{ accelleration }}, v={{ velocity }}
-      {%- if use_execution_time -%}
-      , t={{ execution_time }}
-      {%- endif -%}
-      {%- if use_blend_radius -%}
-      , r={{ blend_radius }}
-      {%- endif -%})
-      movel(pose_trans(get_forward_kin(), p[0.0, 0.0, -0.02, 0.0, 0.0, 0.0]),a=0.1,v=0.05)
-    move_down_done = True
-  end
-  thread force_thread_down():
-    while True:
-      forces = get_tcp_force()
-      if forces[0] > {{ pnp_force_threshold }} or forces[1] > {{ pnp_force_threshold }} or forces[2] > {{ pnp_force_threshold }} or forces[0] < -{{ pnp_force_threshold }} or forces[1] < -{{ pnp_force_threshold }} or forces[2] < -{{ pnp_force_threshold }}:
-        set_tool_digital_out(1, True)
-        force_down_done = True
-        break
-      end
+  set_tcp({{ tcp_in_faceplate }})
+  
+  {%- if use_payload %}
+  set_payload({{ payload }})
+  {%- endif %}
+
+  # Phase 1: Moving down
+  # Reset flags for the downward motion
+  move_done = False
+  force_detected = False
+  
+  # Get to the above pick point
+  movel({{ target_in_base }}, a={{ acceleration }}, v={{ velocity }})
+  
+  # Define threads for the slower contact move
+  thread move_down_thread():
+    # Move a short distance down to make contact
+    movel(pose_trans(get_forward_kin(), p[0.0, 0.0, -0.02, 0.0, 0.0, 0.0]), a=0.1, v=0.05)
+    # Signal that the move completed without force being detected
+    move_done = True
+  end
+
+  thread force_monitor_down_thread():
+    while not move_done:
+      forces = get_tcp_force()
+      if forces[2] < -{{ pnp_force_threshold }} or forces[2] > {{ pnp_force_threshold }}:
+        set_tool_digital_out(1, True) # Signal successful contact
+        force_detected = True
+        break
+      end
       sleep(0.002)
-    end
-  end
-  t1 = run move_thread_down()
-  t2 = run force_thread_down()
-  while True:
-    if move_down_done or force_down_done:
-      break
-    end
+    end
+  end
+
+  # Run threads concurrently
+  t_move_down = run move_down_thread()
+  t_force_down = run force_monitor_down_thread()
+
+  # Wait until either the move finishes or a force is detected
+  while not move_done and not force_detected:
     sleep(0.002)
-  end
-  kill t1
-  kill t2
+  end
+  
+  # Stop all motion cleanly
+  kill t_move_down
+  kill t_force_down
   stopj(5.0)
   sleep(0.5)
-  thread move_thread_up():
-    set_tcp({{ tcp_in_faceplate }})
-    movel(pose_trans(get_forward_kin(), p[0.0, 0.0, 0.1, 0.0, 0.0, 0.0]),a={{ accelleration }},v={{ velocity }})
-    move_up_done = True
-  end
-  thread force_thread_up():
-    sleep(0.4)
-    while True:
-      forces = get_tcp_force()
-      if forces[0] > {{ pnp_force_threshold }} or forces[1] > {{ pnp_force_threshold }} or forces[2] > {{ pnp_force_threshold }} or forces[0] < -{{ pnp_force_threshold }} or forces[1] < -{{ pnp_force_threshold }} or forces[2] < -{{ pnp_force_threshold }}:
-        set_tool_digital_out(1, False)
-        force_up_done = True
-        break
-      end
-      sleep(0.002)
-    end
-  end
-  t3 = run move_thread_up()
-  t4 = run force_thread_up()
-  while True:
-    if move_up_done or force_up_done:
-      break
-    end
-    sleep(0.002)
-  end
-  kill t3
-  kill t4
-  if force_up_done:
-    movel(pose_trans(get_forward_kin(), p[0.0, 0.0, 0.1, 0.0, 0.0, 0.0]),a=0.1,v=0.05)
+
+  # Phase 2: Retracting after pick
+  # Reset flags for the upward motion
+  move_done = False
+  force_detected = False
+
+  # Define threads for the upward retraction move
+  thread move_up_thread():
+    # Retract 10cm up from the current position
+    movel(pose_trans(get_forward_kin(), p[0.0, 0.0, 0.1, 0.0, 0.0, 0.0]), a={{ acceleration }}, v={{ velocity }})
+    move_done = True
   end
+
+  thread force_monitor_up_thread():
+    sleep(0.4) # Wait to ignore forces from initial acceleration
+    while not move_done:
+      forces = get_tcp_force()
+      # Check for excessive force, e.g., if the part is snagged
+      if forces[2] < -{{ pnp_force_threshold }} or forces[2] > {{ pnp_force_threshold }}:
+        set_tool_digital_out(1, False) # Signal that the part may have been dropped/snagged
+        force_detected = True
+        break
+      end
+      sleep(0.002)
+    end
+  end
+
+  # Run threads concurrently
+  t_move_up = run move_up_thread()
+  t_force_up = run force_monitor_up_thread()
+
+  # Wait until either the move finishes or a snag is detected
+  while not move_done and not force_detected:
+    sleep(0.002)
+  end
+
+  # Stop the threads. If force was detected, the move is already stopped.
+  kill t_move_up
+  kill t_force_up
+  
   return True
 end

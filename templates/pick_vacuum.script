@@ -21,7 +21,7 @@ def script():
   thread force_thread_down():
     while True:
       forces = get_tcp_force()
-      if forces[0] > {{ force_threshold }} or forces[1] > {{ force_threshold }} or forces[2] > {{ force_threshold }} or forces[0] < -{{ force_threshold }} or forces[1] < -{{ force_threshold }} or forces[2] < -{{ force_threshold }}:
+      if forces[0] > {{ pnp_force_threshold }} or forces[1] > {{ pnp_force_threshold }} or forces[2] > {{ pnp_force_threshold }} or forces[0] < -{{ pnp_force_threshold }} or forces[1] < -{{ pnp_force_threshold }} or forces[2] < -{{ pnp_force_threshold }}:
         set_tool_digital_out(1, True)
         force_down_done = True
         break
@@ -50,7 +50,7 @@ def script():
     sleep(0.4)
     while True:
       forces = get_tcp_force()
-      if forces[0] > {{ force_threshold }} or forces[1] > {{ force_threshold }} or forces[2] > {{ force_threshold }} or forces[0] < -{{ force_threshold }} or forces[1] < -{{ force_threshold }} or forces[2] < -{{ force_threshold }}:
+      if forces[0] > {{ pnp_force_threshold }} or forces[1] > {{ pnp_force_threshold }} or forces[2] > {{ pnp_force_threshold }} or forces[0] < -{{ pnp_force_threshold }} or forces[1] < -{{ pnp_force_threshold }} or forces[2] < -{{ pnp_force_threshold }}:
         set_tool_digital_out(1, False)
         force_up_done = True
         break

@@ -1,4 +1,3 @@
-# These flags are visible to the main script and all threads.
 global move_done = False
 global force_detected = False
 
@@ -17,10 +16,9 @@ def script():
   # Get to the above pick point
   movel({{ target_in_base }}, a={{ accelleration }}, v={{ velocity }})
   
-  # Define threads for the slower contact move
   thread move_down_thread():
-    # Move a short distance down to make contact
-    movel(pose_trans(get_forward_kin(), p[0.0, 0.0, -0.02, 0.0, 0.0, 0.0]), a=0.1, v=0.05)
+    # Move down to make contact
+    movel(pose_trans(get_forward_kin(), p[0.0, 0.0, -0.2, 0.0, 0.0, 0.0]), a=0.1, v=0.05)
     # Signal that the move completed without force being detected
     move_done = True
   end
@@ -29,7 +27,7 @@ def script():
     while not move_done:
       forces = get_tcp_force()
       if forces[2] < -{{ pnp_force_threshold }} or forces[2] > {{ pnp_force_threshold }}:
-        set_tool_digital_out(1, True) # Signal successful contact
+        set_tool_digital_out(1, True) # Start vacuum
         force_detected = True
         break
       end
@@ -41,7 +39,6 @@ def script():
   t_move_down = run move_down_thread()
   t_force_down = run force_monitor_down_thread()
 
-  # Wait until either the move finishes or a force is detected
   while not move_done and not force_detected:
     sleep(0.002)
   end
@@ -59,7 +56,7 @@ def script():
 
   # Define threads for the upward retraction move
   thread move_up_thread():
-    # Retract 10cm up from the current position
+    # Retract 10cm up after picking
     movel(pose_trans(get_forward_kin(), p[0.0, 0.0, 0.1, 0.0, 0.0, 0.0]), a={{ accelleration }}, v={{ velocity }})
     move_done = True
   end

@@ -22,7 +22,7 @@ def script():
     while True:
       forces = get_tcp_force()
       if forces[0] > {{ pnp_force_threshold }} or forces[1] > {{ pnp_force_threshold }} or forces[2] > {{ pnp_force_threshold }} or forces[0] < -{{ pnp_force_threshold }} or forces[1] < -{{ pnp_force_threshold }} or forces[2] < -{{ pnp_force_threshold }}:
-        set_tool_digital_out(1, True)
+        set_digital_out(1, True)
         force_down_done = True
         break
       end
@@ -51,7 +51,7 @@ def script():
     while True:
       forces = get_tcp_force()
       if forces[0] > {{ pnp_force_threshold }} or forces[1] > {{ pnp_force_threshold }} or forces[2] > {{ pnp_force_threshold }} or forces[0] < -{{ pnp_force_threshold }} or forces[1] < -{{ pnp_force_threshold }} or forces[2] < -{{ pnp_force_threshold }}:
-        set_tool_digital_out(1, False)
+        set_digital_out(1, False)
         force_up_done = True
         break
       end

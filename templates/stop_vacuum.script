@@ -1,4 +1,4 @@
 def script():
-  set_tool_digital_out(1, False)
+  set_digital_out(1, False)
   return True
 end

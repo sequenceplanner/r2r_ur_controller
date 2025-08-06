@@ -27,7 +27,7 @@ def script():
     while not move_done:
       forces = get_tcp_force()
       if forces[2] < -{{ pnp_force_threshold }} or forces[2] > {{ pnp_force_threshold }}:
-        set_tool_digital_out(1, True) # Start vacuum
+        set_digital_out(1, True) # Start vacuum
         force_detected = True
         break
       end
@@ -67,7 +67,7 @@ def script():
       forces = get_tcp_force()
       # Check for excessive force, e.g., if the part is snagged
       if forces[2] < -{{ pnp_force_threshold }} or forces[2] > {{ pnp_force_threshold }}:
-        set_tool_digital_out(1, False) # Signal that the part may have been dropped/snagged
+        set_tool_digital_out(1, true) # Signal that the part may have been snagged (use payload for dropped)
         force_detected = True
         break
       end

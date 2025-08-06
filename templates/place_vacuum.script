@@ -1,35 +1,58 @@
+global move_done = False
+global force_detected = False
+
 def script():
-  set_target_payload(0.710,[0.006,-0.023,0.062],[0.0,0.0,0.0,0.0,0.0,0.0])
+  set_tcp({{ tcp_in_faceplate }})
+  #   set_target_payload(0.710,[0.006,-0.023,0.062],[0.0,0.0,0.0,0.0,0.0,0.0])
+  {%- if use_payload %}
+  set_payload({{ payload }})
+  {%- endif %}
+
+  # Phase 1: Moving down to place the part
+  # Reset flags for the downward motion
   move_done = False
-  force_done = False
-  thread move_thread():
-    set_tcp({{ tcp_in_faceplate }})
-    movel(pose_trans(get_forward_kin(), p[0.0, 0.0, -0.5, 0.0, 0.0, 0.0]),a=0.1,v=0.05)
+  force_detected = False
+  
+  # Get to the above place point
+  movel({{ target_in_base }}, a={{ accelleration }}, v={{ velocity }})
+  
+  thread move_down_thread():
+    # Move down until contact is made
+    movel(pose_trans(get_forward_kin(), p[0.0, 0.0, -0.2, 0.0, 0.0, 0.0]), a=0.1, v=0.05)
+    # Signal that the move completed (if no force was detected)
     move_done = True
   end
-  thread force_thread():
-    while True:
-    forces = get_tcp_force()
-      if forces[0] > 20.0 or forces[1] > 20.0 or forces[2] > 20.0 or forces[0] < -20.0 or forces[1] < -20.0 or forces[2] < -20.0:
-        set_tool_digital_out(1, False)
-        force_done = True
+
+  thread force_monitor_down_thread():
+    while not move_done:
+      forces = get_tcp_force()
+      if forces[2] < -{{ pnp_force_threshold }} or forces[2] > {{ pnp_force_threshold }}:
+        set_standard_digital_out(0, False) # Stop vacuum to release part
+        force_detected = True
         break
       end
-    sleep(0.002)
+      sleep(0.002)
     end
   end
-  t1 = run move_thread()
-  t2 = run force_thread()
-  while True:
-    if move_done or force_done:
-      break
-    end
+
+  # Run threads concurrently
+  t_move_down = run move_down_thread()
+  t_force_down = run force_monitor_down_thread()
+
+  # Wait until the part is placed (force detected) or the move finishes
+  while not move_done and not force_detected:
     sleep(0.002)
   end
-  kill t1
-  kill t2
+  
+  # Stop all motion cleanly
+  kill t_move_down
+  kill t_force_down
   stopj(5.0)
   sleep(0.5)
-  movel(pose_trans(get_forward_kin(), p[0.0, 0.0, 0.1, 0.0, 0.0, 0.0]),a=0.1,v=0.05)
+
+  # Phase 2: Retracting after place
+  # Retract 10cm up after placing, without force monitoring.
+  movel(pose_trans(get_forward_kin(), p[0.0, 0.0, 0.1, 0.0, 0.0, 0.0]), a={{ accelleration }}, v={{ velocity }})
+  
   return True
 end

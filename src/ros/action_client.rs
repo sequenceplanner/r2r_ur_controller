@@ -27,26 +27,26 @@ pub async fn action_client(
         .lock()
         .unwrap()
         .create_action_client::<ExecuteScript::Action>(&format!("ur_script"))?;
-    // let waiting_for_server = r2r::Node::is_available(&client)?;
+    let waiting_for_server = r2r::Node::is_available(&client)?;
+
+    let mut timer =
+    arc_node
+        .lock()
+        .unwrap()
+        .create_wall_timer(std::time::Duration::from_millis(
+            UR_ACTION_SERVER_TICKER_RATE,
+        ))?;
 
     r2r::log_warn!(
         &log_target,
         "Waiting for the {robot_name} control action server..."
     );
 
-    // waiting_for_server.await?;
+    waiting_for_server.await?; // Maybe we do need this
     r2r::log_info!(
         &log_target,
         "Robot {robot_name} control action server available."
     );
-
-    let mut timer =
-        arc_node
-            .lock()
-            .unwrap()
-            .create_wall_timer(std::time::Duration::from_millis(
-                UR_ACTION_SERVER_TICKER_RATE,
-            ))?;
 
     let keys: Vec<String> = vec![
         format!("{}_request_trigger", robot_name),

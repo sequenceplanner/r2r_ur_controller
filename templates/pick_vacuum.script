@@ -57,7 +57,7 @@ def script():
   # Define threads for the upward retraction move
   thread move_up_thread():
     # Retract 10cm up after picking
-    movel(pose_trans(get_forward_kin(), p[0.0, 0.0, 0.1, 0.0, 0.0, 0.0]), a={{ accelleration }}, v={{ velocity }})
+    movel(pose_trans(get_forward_kin(), p[0.0, 0.0, 0.3, 0.0, 0.0, 0.0]), a={{ accelleration }}, v={{ velocity }})
     move_done = True
   end
 

@@ -1,4 +1,4 @@
-def Gripper():
+def script():
   step_count_c1ea570d_597a_4e27_b1f2_f1204aefbef2 = 0
   thread Step_Counter_Thread_c0f00319_af92_46b1_ade4_4c060a86bf18():
     while (True):
@@ -2325,7 +2325,6 @@ def Gripper():
   while(not rq_gripper_communication_thread_started):
       sync()
   end
-
   rq_move_and_wait({{ gripper_position }})
-
+  return True
 end

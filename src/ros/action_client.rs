@@ -265,7 +265,7 @@ pub async fn action_client(
                     metadata: MapOrUnknown::UNKNOWN,
                 });
                 let mut tcp_in_faceplate = target_in_base.clone();
-                if !use_joint_positions && command_type != "gripper_move" {
+                if !use_joint_positions && (command_type == "move_l" || command_type == "move_j") {
                     target_in_base = match TransformsManager::lookup_transform(
                         &mut con,
                         &baseframe_id,

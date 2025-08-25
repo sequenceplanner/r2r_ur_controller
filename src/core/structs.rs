@@ -108,7 +108,8 @@ pub struct RobotCommand {
     pub target_in_base: String, // use pose_to_string
     // pub set_tcp: bool, // if false, no tcp will be set (will remain 0.0.0.0.0.0.0)
     pub tcp_in_faceplate: String, // use pose_to_string
-    pub pnp_force_threshold: f64
+    pub pnp_force_threshold: f64,
+    pub gripper_position: i64 // open: 100, closed: 0, or anything inbetween
 }
 
 #[derive(Serialize, Deserialize, Clone)]

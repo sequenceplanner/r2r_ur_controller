@@ -2326,7 +2326,6 @@ def Gripper():
       sync()
   end
 
-  rq_close_and_wait()
-  return True
+  rq_move_and_wait({{ gripper_position }})
 
 end

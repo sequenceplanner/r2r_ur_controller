@@ -259,7 +259,7 @@ pub async fn action_client(
                     &log_target,
                 );
 
-                if command_type != "gripper_move" || command_type != "gripper_activate"{
+                if command_type != "gripper_move" && command_type != "gripper_activate"{
                     let mut target_in_base = transform_to_string(&SPTransformStamped {
                         active_transform: true,
                         enable_transform: true,

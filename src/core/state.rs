@@ -41,6 +41,8 @@ pub fn generate_robot_interface_state(robot_name: &str) -> State {
     let cancel_current_goal = bv!(&&format!("{}_cancel_current_goal", robot_name));
     let pnp_force_threshold = fv!(&&format!("{}_pnp_force_threshold", robot_name));
     let estimated_position = v!(&&format!("{}_estimated_position", robot_name));
+    let gripper_reference_position = iv!(&&format!("{}_gripper_reference_position", robot_name));
+    let gripper_estimated_position = iv!(&&format!("{}_gripper_estimated_position", robot_name));
 
     let state = state.add(assign!(command_type, SPValue::String(StringOrUnknown::UNKNOWN)));
     let state = state.add(assign!(accelleration, SPValue::Float64(FloatOrUnknown::UNKNOWN)));
@@ -66,6 +68,8 @@ pub fn generate_robot_interface_state(robot_name: &str) -> State {
     let state = state.add(assign!(cancel_current_goal, SPValue::Bool(BoolOrUnknown::UNKNOWN)));
     let state = state.add(assign!(estimated_position, SPValue::String(StringOrUnknown::UNKNOWN)));
     let state = state.add(assign!(pnp_force_threshold, SPValue::Float64(FloatOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(gripper_reference_position, SPValue::Int64(IntOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(gripper_estimated_position, SPValue::Int64(IntOrUnknown::UNKNOWN)));
 
     state
 }

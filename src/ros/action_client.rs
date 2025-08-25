@@ -72,7 +72,8 @@ pub async fn action_client(
         format!("{}_tcp_id", robot_name),
         format!("{}_root_frame_id", robot_name),
         format!("{}_pnp_force_threshold", robot_name),
-        format!("{}_gripper_position", robot_name),
+        format!("{}_gripper_reference_position", robot_name),
+        format!("{}_gripper_estimated_position", robot_name),
     ]
     .iter()
     .map(|k| k.to_string())
@@ -152,7 +153,7 @@ pub async fn action_client(
                 );
 
                 let gripper_position = state.get_int_or_default_to_zero(
-                    &format!("{robot_name}_gripper_position"),
+                    &format!("{robot_name}_gripper_reference_position"),
                     &log_target,
                 );
 

@@ -650,7 +650,6 @@ def gripper():
   current_force = [-1,-1,-1,-1]
 
   rq_activate_and_wait()
-  rq_move_and_wait({{ gripper_position }})
 
 end
  

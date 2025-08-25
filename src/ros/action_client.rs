@@ -3,6 +3,9 @@ use std::{
     time::SystemTime,
 };
 
+use std::net::TcpStream;
+use std::io;
+
 use micro_sp::*;
 use r2r::ur_script_msgs::action::ExecuteScript;
 
@@ -17,6 +20,7 @@ pub static DEFAULT_FACEPLATE_ID: &'static str = "tool0";
 pub static DEFAULT_ROOT_FRAME_ID: &'static str = "world";
 
 pub async fn action_client(
+    ur_address: &str, 
     robot_name: &str,
     arc_node: Arc<Mutex<r2r::Node>>,
     connection_manager: &Arc<ConnectionManager>,
@@ -30,12 +34,12 @@ pub async fn action_client(
     let waiting_for_server = r2r::Node::is_available(&client)?;
 
     let mut timer =
-    arc_node
-        .lock()
-        .unwrap()
-        .create_wall_timer(std::time::Duration::from_millis(
-            UR_ACTION_SERVER_TICKER_RATE,
-        ))?;
+        arc_node
+            .lock()
+            .unwrap()
+            .create_wall_timer(std::time::Duration::from_millis(
+                UR_ACTION_SERVER_TICKER_RATE,
+            ))?;
 
     r2r::log_warn!(
         &log_target,
@@ -255,116 +259,158 @@ pub async fn action_client(
                     &log_target,
                 );
 
-                let mut target_in_base = transform_to_string(&SPTransformStamped {
-                    active_transform: true,
-                    enable_transform: true,
-                    time_stamp: SystemTime::now(),
-                    parent_frame_id: "".to_string(),
-                    child_frame_id: "".to_string(),
-                    transform: SPTransform::default(),
-                    metadata: MapOrUnknown::UNKNOWN,
-                });
-                let mut tcp_in_faceplate = target_in_base.clone();
-                if !use_joint_positions && (command_type == "move_l" || command_type == "move_j") {
-                    target_in_base = match TransformsManager::lookup_transform(
-                        &mut con,
-                        &baseframe_id,
-                        &goal_feature_id,
-                    )
-                    .await
-                    {
-                        Ok(transform) => transform_to_string(&transform),
-                        Err(_) => continue 'scan,
-                    };
-
-                    tcp_in_faceplate =
-                        match TransformsManager::lookup_transform(&mut con, &faceplate_id, &tcp_id)
-                            .await
+                if command_type != "gripper_move" || command_type != "gripper_activate"{
+                    let mut target_in_base = transform_to_string(&SPTransformStamped {
+                        active_transform: true,
+                        enable_transform: true,
+                        time_stamp: SystemTime::now(),
+                        parent_frame_id: "".to_string(),
+                        child_frame_id: "".to_string(),
+                        transform: SPTransform::default(),
+                        metadata: MapOrUnknown::UNKNOWN,
+                    });
+                    let mut tcp_in_faceplate = target_in_base.clone();
+                    if !use_joint_positions {
+                        target_in_base = match TransformsManager::lookup_transform(
+                            &mut con,
+                            &baseframe_id,
+                            &goal_feature_id,
+                        )
+                        .await
                         {
                             Ok(transform) => transform_to_string(&transform),
                             Err(_) => continue 'scan,
                         };
-                }
 
-                let robot_command = RobotCommand {
-                    command_type,
-                    accelleration,
-                    velocity,
-                    global_acceleration_scaling,
-                    global_velocity_scaling,
-                    use_execution_time,
-                    execution_time,
-                    use_blend_radius,
-                    blend_radius,
-                    use_joint_positions,
-                    joint_positions,
-                    use_preferred_joint_config,
-                    preferred_joint_config,
-                    use_payload,
-                    payload,
-                    target_in_base,
-                    tcp_in_faceplate,
-                    pnp_force_threshold,
-                    gripper_position
-                };
-
-                let script = match generate_script(robot_name, robot_command, templates) {
-                    Ok(script) => script,
-                    Err(_) => {
-                        r2r::log_error!("robot", "Failed to generate UR Script.");
-
-                        continue 'scan;
+                        tcp_in_faceplate = match TransformsManager::lookup_transform(
+                            &mut con,
+                            &faceplate_id,
+                            &tcp_id,
+                        )
+                        .await
+                        {
+                            Ok(transform) => transform_to_string(&transform),
+                            Err(_) => continue 'scan,
+                        };
                     }
-                };
 
-                let goal = ExecuteScript::Goal { script };
+                    let robot_command = RobotCommand {
+                        command_type,
+                        accelleration,
+                        velocity,
+                        global_acceleration_scaling,
+                        global_velocity_scaling,
+                        use_execution_time,
+                        execution_time,
+                        use_blend_radius,
+                        blend_radius,
+                        use_joint_positions,
+                        joint_positions,
+                        use_preferred_joint_config,
+                        preferred_joint_config,
+                        use_payload,
+                        payload,
+                        target_in_base,
+                        tcp_in_faceplate,
+                        pnp_force_threshold,
+                        gripper_position,
+                    };
 
-                let (_goal_handle, result, mut _feedback) = match client.send_goal_request(goal) {
-                    Ok(x) => match x.await {
-                        Ok(y) => y,
+                    let script = match generate_script(robot_name, robot_command, templates) {
+                        Ok(script) => script,
+                        Err(_) => {
+                            r2r::log_error!("robot", "Failed to generate UR Script.");
+
+                            continue 'scan;
+                        }
+                    };
+
+                    let goal = ExecuteScript::Goal { script };
+
+                    let (_goal_handle, result, mut _feedback) = match client.send_goal_request(goal)
+                    {
+                        Ok(x) => match x.await {
+                            Ok(y) => y,
+                            Err(e) => {
+                                r2r::log_info!(
+                                    &format!("{}_ur_controller", robot_name),
+                                    "Could not send goal request."
+                                );
+                                return Err(Box::new(e));
+                            }
+                        },
                         Err(e) => {
                             r2r::log_info!(
                                 &format!("{}_ur_controller", robot_name),
-                                "Could not send goal request."
+                                "Did not get goal."
                             );
                             return Err(Box::new(e));
                         }
-                    },
-                    Err(e) => {
-                        r2r::log_info!(
-                            &format!("{}_ur_controller", robot_name),
-                            "Did not get goal."
-                        );
-                        return Err(Box::new(e));
-                    }
-                };
+                    };
 
-                match result.await {
-                    Ok((status, msg)) => match status {
-                        r2r::GoalStatus::Aborted => {
+                    match result.await {
+                        Ok((status, msg)) => match status {
+                            r2r::GoalStatus::Aborted => {
+                                r2r::log_error!(
+                                    &format!("{}_ur_controller", robot_name),
+                                    "Goal aborted, result is {}.",
+                                    msg.ok
+                                );
+                                request_state = ActionRequestState::Failed.to_string();
+                            }
+                            _ => {
+                                r2r::log_info!(
+                                    &format!("{}_ur_controller", robot_name),
+                                    "Goal succeeded, result is {}.",
+                                    msg.ok
+                                );
+                                request_state = ActionRequestState::Succeeded.to_string();
+                            }
+                        },
+                        Err(e) => {
                             r2r::log_error!(
                                 &format!("{}_ur_controller", robot_name),
-                                "Goal aborted, result is {}.",
-                                msg.ok
+                                "Goal failed with {}.",
+                                e
                             );
                             request_state = ActionRequestState::Failed.to_string();
                         }
-                        _ => {
-                            r2r::log_info!(
-                                &format!("{}_ur_controller", robot_name),
-                                "Goal succeeded, result is {}.",
-                                msg.ok
-                            );
-                            request_state = ActionRequestState::Succeeded.to_string();
+                    }
+                } else {
+
+                    let robot_command = RobotCommand {
+                        command_type,
+                        accelleration,
+                        velocity,
+                        global_acceleration_scaling,
+                        global_velocity_scaling,
+                        use_execution_time,
+                        execution_time,
+                        use_blend_radius,
+                        blend_radius,
+                        use_joint_positions,
+                        joint_positions,
+                        use_preferred_joint_config,
+                        preferred_joint_config,
+                        use_payload,
+                        payload,
+                        target_in_base: "unknown".to_string(),
+                        tcp_in_faceplate: "unknown".to_string(),
+                        pnp_force_threshold,
+                        gripper_position,
+                    };
+
+                    let script = match generate_script(robot_name, robot_command, templates) {
+                        Ok(script) => script,
+                        Err(_) => {
+                            r2r::log_error!("robot", "Failed to generate UR Script.");
+
+                            continue 'scan;
                         }
-                    },
-                    Err(e) => {
-                        r2r::log_error!(
-                            &format!("{}_ur_controller", robot_name),
-                            "Goal failed with {}.",
-                            e
-                        );
-                        request_state = ActionRequestState::Failed.to_string();
+                    };
+                    match send_gripper_script(ur_address, 30002, &script) {
+                        Ok(_) => request_state = ActionRequestState::Succeeded.to_string(),
+                        Err(_) => request_state = ActionRequestState::Failed.to_string(),
                     }
                 }
             }
@@ -383,6 +429,13 @@ pub async fn action_client(
             .await;
         }
     }
+}
+
+fn send_gripper_script(host: &str, port: u16, script_content: &str) -> io::Result<u64> {
+    let server_address = format!("{}:{}", host, port);
+    let mut stream = TcpStream::connect(server_address)?;
+    let mut reader = script_content.as_bytes();
+    io::copy(&mut reader, &mut stream)
 }
 
 fn generate_script(

@@ -146,8 +146,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
     let con_arc_clone = con_arc.clone();
     let robot_id_clone = robot_id.clone();
+    let ur_address_clone = ur_address.clone();
     tokio::task::spawn(async move {
-        match action_client(&robot_id_clone, arc_node_clone, &con_arc_clone, &templates).await {
+        match action_client(&ur_address_clone, &robot_id_clone, arc_node_clone, &con_arc_clone, &templates).await {
             Ok(()) => (),
             Err(e) => {
                 log::error!(target: &&format!("main robot runner"), "failed with: {}", e)

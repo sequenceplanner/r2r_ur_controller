@@ -2325,6 +2325,7 @@ def script():
   while(not rq_gripper_communication_thread_started):
       sync()
   end
+  rq_activate_and_wait()
   rq_move_and_wait({{ gripper_position }})
   return True
 end

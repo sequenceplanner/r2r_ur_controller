@@ -1,4 +1,4 @@
-def script():
+def gripper():
 #aliases for the gripper variable names
   ACT = 1
   GTO = 2
@@ -651,6 +651,6 @@ def script():
 
   rq_activate_and_wait()
   rq_move_and_wait({{ gripper_position }})
-  return True
+
 end
  

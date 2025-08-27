@@ -73,7 +73,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .subscribe::<JointState>("joint_states", QosProfile::default())?;
 
     let state = generate_robot_interface_state(&robot_id);
-    let gripper_state = generate_robot_interface_state(&robot_id);
+    let gripper_state = generate_gripper_interface_state("g1");
     let state = state.extend(gripper_state, true);
 
     let connection_manager = ConnectionManager::new().await;

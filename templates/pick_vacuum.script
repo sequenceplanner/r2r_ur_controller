@@ -13,9 +13,6 @@ def script():
   move_done = False
   force_detected = False
   
-  # Get to the above pick point
-  movel({{ target_in_base }}, a={{ accelleration }}, v={{ velocity }})
-  
   thread move_down_thread():
     # Move down to make contact
     movel(pose_trans(get_forward_kin(), p[0.0, 0.0, -0.2, 0.0, 0.0, 0.0]), a=0.1, v=0.05)

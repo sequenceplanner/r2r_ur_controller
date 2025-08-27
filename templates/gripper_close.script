@@ -643,11 +643,11 @@ def gripper():
   end
   #########################################
   rq_obj_detect = 0
-#   rq_init_connection(9, "1")
+  rq_init_connection(9, "1")
   connectivity_checked = [-1,-1,-1,-1]
   status_checked = [-1,-1,-1,-1]
   current_speed = [-1,-1,-1,-1]
   current_force = [-1,-1,-1,-1]
   
-  rq_move_and_wait_norm({{ ref_pos_percentage }})
+  rq_move_and_wait_norm(100)
 end

@@ -3,8 +3,8 @@ use std::{
     time::SystemTime,
 };
 
-use std::net::TcpStream;
-use std::io;
+// use std::net::TcpStream;
+// use std::io;
 
 use micro_sp::*;
 use r2r::ur_script_msgs::action::ExecuteScript;
@@ -20,8 +20,9 @@ pub static DEFAULT_FACEPLATE_ID: &'static str = "tool0";
 pub static DEFAULT_ROOT_FRAME_ID: &'static str = "world";
 
 pub async fn action_client(
-    ur_address: &str, 
+    ur_address: &str,
     robot_name: &str,
+    gripper_id: &str,
     arc_node: Arc<Mutex<r2r::Node>>,
     connection_manager: &Arc<ConnectionManager>,
     templates: &tera::Tera,
@@ -76,8 +77,12 @@ pub async fn action_client(
         format!("{}_tcp_id", robot_name),
         format!("{}_root_frame_id", robot_name),
         format!("{}_pnp_force_threshold", robot_name),
-        format!("{}_gripper_reference_position", robot_name),
-        format!("{}_gripper_estimated_position", robot_name),
+        // format!("{}_request_trigger", gripper_id),
+        // format!("{}_request_state", gripper_id),
+        format!("{}_command_type", gripper_id),
+        format!("{}_velocity", gripper_id),
+        format!("{}_force", gripper_id),
+        format!("{}_ref_pos_percentage", gripper_id),
     ]
     .iter()
     .map(|k| k.to_string())
@@ -103,6 +108,22 @@ pub async fn action_client(
         if request_trigger {
             request_trigger = false;
             if request_state == ActionRequestState::Initial.to_string() {
+                let gripper_command_type = state.get_string_or_default_to_unknown(
+                    &format!("{gripper_id}_command_type"),
+                    &log_target,
+                );
+
+                let gripper_velocity =
+                    state.get_float_or_value(&format!("{gripper_id}_velocity"), 1.0, &log_target);
+
+                let gripper_force =
+                    state.get_float_or_value(&format!("{gripper_id}_force"), 1.0, &log_target);
+
+                let gripper_ref_pos_percentage = state.get_int_or_default_to_zero(
+                    &format!("{gripper_id}_ref_pos_percentage"),
+                    &log_target,
+                );
+
                 let command_type = state.get_string_or_default_to_unknown(
                     &format!("{robot_name}_command_type"),
                     &log_target,
@@ -156,10 +177,10 @@ pub async fn action_client(
                     &log_target,
                 );
 
-                let gripper_position = state.get_int_or_default_to_zero(
-                    &format!("{robot_name}_gripper_reference_position"),
-                    &log_target,
-                );
+                // let gripper_position = state.get_int_or_default_to_zero(
+                //     &format!("{robot_name}_gripper_reference_position"),
+                //     &log_target,
+                // );
 
                 let joint_positions = if let Some(value) =
                     state.get_value(&format!("{robot_name}_joint_positions"), &log_target)
@@ -259,7 +280,11 @@ pub async fn action_client(
                     &log_target,
                 );
 
-                if command_type != "gripper_move" && command_type != "gripper_activate"{
+                if command_type != "gripper_move"
+                    && command_type != "gripper_activate"
+                    && command_type != "gripper_open"
+                    && command_type != "gripper_close"
+                {
                     let mut target_in_base = transform_to_string(&SPTransformStamped {
                         active_transform: true,
                         enable_transform: true,
@@ -313,7 +338,7 @@ pub async fn action_client(
                         target_in_base,
                         tcp_in_faceplate,
                         pnp_force_threshold,
-                        gripper_position,
+                        // gripper_position,
                     };
 
                     let script = match generate_script(robot_name, robot_command, templates) {
@@ -377,40 +402,72 @@ pub async fn action_client(
                         }
                     }
                 } else {
-
-                    let robot_command = RobotCommand {
-                        command_type,
-                        accelleration,
-                        velocity,
-                        global_acceleration_scaling,
-                        global_velocity_scaling,
-                        use_execution_time,
-                        execution_time,
-                        use_blend_radius,
-                        blend_radius,
-                        use_joint_positions,
-                        joint_positions,
-                        use_preferred_joint_config,
-                        preferred_joint_config,
-                        use_payload,
-                        payload,
-                        target_in_base: "unknown".to_string(),
-                        tcp_in_faceplate: "unknown".to_string(),
-                        pnp_force_threshold,
-                        gripper_position,
+                    let gripper_command = GripperCommand {
+                        command_type: gripper_command_type,
+                        velocity: gripper_velocity,
+                        force: gripper_force,
+                        ref_pos_percentage: gripper_ref_pos_percentage,
                     };
 
-                    let script = match generate_script(robot_name, robot_command, templates) {
-                        Ok(script) => script,
-                        Err(_) => {
-                            r2r::log_error!("robot", "Failed to generate UR Script.");
+                    let script =
+                        match generate_gripper_script(gripper_command, templates, &log_target) {
+                            Ok(script) => script,
+                            Err(_) => {
+                                r2r::log_error!("robot", "Failed to generate UR Script.");
 
-                            continue 'scan;
+                                continue 'scan;
+                            }
+                        };
+                    let goal = ExecuteScript::Goal { script };
+
+                    let (_goal_handle, result, mut _feedback) = match client.send_goal_request(goal)
+                    {
+                        Ok(x) => match x.await {
+                            Ok(y) => y,
+                            Err(e) => {
+                                r2r::log_info!(
+                                    &format!("{}_ur_controller", robot_name),
+                                    "Could not send goal request."
+                                );
+                                return Err(Box::new(e));
+                            }
+                        },
+                        Err(e) => {
+                            r2r::log_info!(
+                                &format!("{}_ur_controller", robot_name),
+                                "Did not get goal."
+                            );
+                            return Err(Box::new(e));
                         }
                     };
-                    match send_gripper_script(ur_address, 30002, &script) {
-                        Ok(_) => request_state = ActionRequestState::Succeeded.to_string(),
-                        Err(_) => request_state = ActionRequestState::Failed.to_string(),
+
+                    match result.await {
+                        Ok((status, msg)) => match status {
+                            r2r::GoalStatus::Aborted => {
+                                r2r::log_error!(
+                                    &format!("{}_ur_controller", robot_name),
+                                    "Goal aborted, result is {}.",
+                                    msg.ok
+                                );
+                                request_state = ActionRequestState::Failed.to_string();
+                            }
+                            _ => {
+                                r2r::log_info!(
+                                    &format!("{}_ur_controller", robot_name),
+                                    "Goal succeeded, result is {}.",
+                                    msg.ok
+                                );
+                                request_state = ActionRequestState::Succeeded.to_string();
+                            }
+                        },
+                        Err(e) => {
+                            r2r::log_error!(
+                                &format!("{}_ur_controller", robot_name),
+                                "Goal failed with {}.",
+                                e
+                            );
+                            request_state = ActionRequestState::Failed.to_string();
+                        }
                     }
                 }
             }
@@ -431,12 +488,12 @@ pub async fn action_client(
     }
 }
 
-fn send_gripper_script(host: &str, port: u16, script_content: &str) -> io::Result<u64> {
-    let server_address = format!("{}:{}", host, port);
-    let mut stream = TcpStream::connect(server_address)?;
-    let mut reader = script_content.as_bytes();
-    io::copy(&mut reader, &mut stream)
-}
+// fn send_gripper_script(host: &str, port: u16, script_content: &str) -> io::Result<u64> {
+//     let server_address = format!("{}:{}", host, port);
+//     let mut stream = TcpStream::connect(server_address)?;
+//     let mut reader = script_content.as_bytes();
+//     io::copy(&mut reader, &mut stream)
+// }
 
 fn generate_script(
     robot_name: &str,
@@ -469,6 +526,37 @@ fn generate_script(
                 &format!("{}_ur_controller", robot_name),
                 "Rendering the {}.script Tera Template failed with: {}.",
                 robot_command.command_type,
+                e
+            );
+            return Err(Box::new(e));
+        }
+    }
+}
+
+fn generate_gripper_script(
+    gripper_command: GripperCommand,
+    templates: &tera::Tera,
+    log_target: &str,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let empty_context = tera::Context::new();
+    match templates.render(
+        &format!("{}.script", gripper_command.command_type.to_string()),
+        match &tera::Context::from_serialize(gripper_command.clone()) {
+            Ok(context) => context,
+            Err(e) => {
+                log::error!(target: &log_target,
+                    "Creating a Tera Context from a serialized interpretation failed with: {e}.");
+                log::error!(target: &log_target,
+                    "An empty Tera Context will be used instead.");
+                &empty_context
+            }
+        },
+    ) {
+        Ok(script) => Ok(script),
+        Err(e) => {
+            log::error!(target: &log_target,
+                "Rendering the {}.script Tera Template failed with: {}.",
+                gripper_command.command_type,
                 e
             );
             return Err(Box::new(e));

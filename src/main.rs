@@ -73,6 +73,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .subscribe::<JointState>("joint_states", QosProfile::default())?;
 
     let state = generate_robot_interface_state(&robot_id);
+    let gripper_state = generate_robot_interface_state(&robot_id);
+    let state = state.extend(gripper_state, true);
 
     let connection_manager = ConnectionManager::new().await;
     StateManager::set_state(&mut connection_manager.get_connection().await, &state).await;
@@ -148,7 +150,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let robot_id_clone = robot_id.clone();
     let ur_address_clone = ur_address.clone();
     tokio::task::spawn(async move {
-        match action_client(&ur_address_clone, &robot_id_clone, arc_node_clone, &con_arc_clone, &templates).await {
+        match action_client(&ur_address_clone, &robot_id_clone, "g1", arc_node_clone, &con_arc_clone, &templates).await {
             Ok(()) => (),
             Err(e) => {
                 log::error!(target: &&format!("main robot runner"), "failed with: {}", e)

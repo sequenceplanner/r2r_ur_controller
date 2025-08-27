@@ -109,7 +109,16 @@ pub struct RobotCommand {
     // pub set_tcp: bool, // if false, no tcp will be set (will remain 0.0.0.0.0.0.0)
     pub tcp_in_faceplate: String, // use pose_to_string
     pub pnp_force_threshold: f64,
-    pub gripper_position: i64 // open: 100, closed: 0, or anything inbetween
+    // pub gripper_position: i64 // open: 100, closed: 0, or anything inbetween
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct GripperCommand {
+    // open, close, move_to, set force, activate, etc...
+    pub command_type: String,
+    pub velocity: f64,
+    pub force: f64,
+    pub ref_pos_percentage: i64, // fully closed: 100, fully open 0, or anything inbetween
 }
 
 #[derive(Serialize, Deserialize, Clone)]

@@ -73,3 +73,30 @@ pub fn generate_robot_interface_state(robot_name: &str) -> State {
 
     state
 }
+
+
+pub fn generate_gripper_interface_state(gripper_id: &str) -> State {
+    let state = State::new();
+
+    let request_trigger = bv!(&&format!("{}_request_trigger", gripper_id));
+    let request_state = v!(&&format!("{}_request_state", gripper_id));
+    let command_type = v!(&&format!("{}_command_type", gripper_id));
+    let velocity = fv!(&&format!("{}_velocity", gripper_id));
+    let force = fv!(&&format!("{}_force", gripper_id));
+    let ref_pos_percentage = iv!(&&format!("{}_ref_pos_percentage", gripper_id));
+
+    let state = state.add(assign!(request_trigger, false.to_spvalue()));
+    let state = state.add(assign!(request_state, "initial".to_spvalue()));
+    let state = state.add(assign!(
+        command_type,
+        SPValue::String(StringOrUnknown::UNKNOWN)
+    ));
+    let state = state.add(assign!(velocity, SPValue::Float64(FloatOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(force, SPValue::Float64(FloatOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(
+        ref_pos_percentage,
+        SPValue::Int64(IntOrUnknown::UNKNOWN)
+    ));
+
+    state
+}

@@ -107,8 +107,9 @@ pub struct RobotCommand {
     // Calculated transforms with the lookup
     pub target_in_base: String, // use pose_to_string
     // pub set_tcp: bool, // if false, no tcp will be set (will remain 0.0.0.0.0.0.0)
+    pub relative_pose: String, // use pose_to_string, relative to current TCP pose
     pub tcp_in_faceplate: String, // use pose_to_string
-    pub pnp_force_threshold: f64,
+    pub force_threshold: f64,
     // pub gripper_position: i64 // open: 100, closed: 0, or anything inbetween
 }
 
@@ -215,6 +216,10 @@ pub fn transform_to_string(tf_stamped: &SPTransformStamped) -> String {
     };
 
     format!("p[{},{},{},{},{},{}]", x, y, z, rx, ry, rz)
+}
+
+pub fn pose_to_string(pose: [f64; 6]) -> String {
+    format!("p[{},{},{},{},{},{}]", pose[0], pose[1], pose[2], pose[3], pose[4], pose[5])
 }
 
 pub struct URDFParameters {

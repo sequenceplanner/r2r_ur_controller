@@ -1,4 +1,0 @@
-def script():
-  sleep({{ velocity }}.)
-  return True
-end

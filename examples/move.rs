@@ -48,7 +48,8 @@ async fn trigger(connection_manager: Arc<ConnectionManager>) -> Result<(), Box<d
         // .update("r1_faceplate_id", "tool0".to_spvalue())
         // .update("r1_baseframe_id", "base_link".to_spvalue())
         // .update("r1_goal_feature_id", "above_buffer_1".to_spvalue())
-        .update("r1_command_type", "safe_move_l_relative".to_spvalue())
+        .update("r1_command_type", "get_force".to_spvalue())
+        .update("r1_use_relative_pose", true.to_spvalue())
         .update("r1_relative_pose", "p[0.0, 0.0, 0.2, 0.0, 0.0, 0.0]".to_spvalue());
 
     let modified_state = state.get_diff_partial_state(&new_state);

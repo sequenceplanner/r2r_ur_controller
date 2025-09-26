@@ -302,11 +302,39 @@ pub async fn action_client(
                     &log_target,
                 );
 
-                let relative_pose = state.get_string_or_value(
-                    &format!("{robot_name}_relative_pose"),
-                    "p[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]".to_string(),
-                    log_target,
-                );
+                // let relative_pose = state.get_array_or_default_to_empty(
+                //     &format!("{robot_name}_relative_pose"),
+                //     "p[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]".to_string(),
+                //     log_target,
+                // );
+
+                let relative_pose = if let Some(value) =
+                    state.get_value(&format!("{robot_name}_relative_pose"), &log_target)
+                {
+                    match value {
+                        micro_sp::SPValue::Array(array_or_unknown) => match array_or_unknown {
+                            ArrayOrUnknown::UNKNOWN => [0.0, 0.0, 0.0, 0.0, 0.0, 0.0].to_vec(),
+                            ArrayOrUnknown::Array(values) => values
+                                .iter()
+                                .enumerate()
+                                .map(|(i, val)| match val {
+                                    micro_sp::SPValue::Float64(float_or_unknown) => {
+                                        match float_or_unknown {
+                                            FloatOrUnknown::UNKNOWN => [0.0, 0.0, 0.0, 0.0, 0.0, 0.0][i],
+                                            FloatOrUnknown::Float64(ordered_float) => {
+                                                ordered_float.into_inner()
+                                            }
+                                        }
+                                    }
+                                    _ => [0.0, 0.0, 0.0, 0.0, 0.0, 0.0][i],
+                                })
+                                .collect(),
+                        },
+                        _ => [0.0, 0.0, 0.0, 0.0, 0.0, 0.0].to_vec(),
+                    }
+                } else {
+                    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0].to_vec()
+                };
 
                 // if command_type != "gripper_move"
                 //     && command_type != "gripper_activate"

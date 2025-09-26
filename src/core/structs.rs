@@ -107,7 +107,7 @@ pub struct RobotCommand {
     // Calculated transforms with the lookup
     pub target_in_base: String, // use pose_to_string
     // pub set_tcp: bool, // if false, no tcp will be set (will remain 0.0.0.0.0.0.0)
-    pub relative_pose: String, // use pose_to_string, relative to current TCP pose
+    pub relative_pose: Vec<f64>, // use pose_to_string, relative to current TCP pose
     pub tcp_in_faceplate: String, // use pose_to_string
     pub force_threshold: f64,
     // pub gripper_velocity: f64,

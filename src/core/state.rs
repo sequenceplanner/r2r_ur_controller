@@ -43,7 +43,7 @@ pub fn generate_robot_interface_state(robot_name: &str) -> State {
     let force_feedback = fv!(&&format!("{}_force_feedback", robot_name));
     let estimated_position = v!(&&format!("{}_estimated_position", robot_name));
     let use_relative_pose = bv!(&&format!("{}_use_relative_pose", robot_name));
-    let relative_pose = v!(&&format!("{}_relative_pose", robot_name));
+    let relative_pose = av!(&&format!("{}_relative_pose", robot_name));
     let gripper_force = fv!(&&format!("{}_gripper_force", robot_name));
     let gripper_velocity = fv!(&&format!("{}_gripper_velocity", robot_name));
     let gripper_ref_pos_percentage = iv!(&&format!("{}_gripper_ref_pos_percentage", robot_name));

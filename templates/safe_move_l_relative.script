@@ -10,7 +10,7 @@ def script():
   force_detected = False
 
   thread move_thread():
-    movel(pose_trans(get_forward_kin(), {{ relative_pose }}), a={{ accelleration }}, v={{ velocity }}
+    movel(pose_trans(get_forward_kin(), p{{ relative_pose }}), a={{ accelleration }}, v={{ velocity }}
     {%- if use_execution_time -%}
     , t={{ execution_time }}
     {%- endif -%}

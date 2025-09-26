@@ -22,7 +22,7 @@ def script():
     while not move_done:
        force = force()
         if force > {{ force_threshold }} or force < -{{ force_threshold }}:
-        set_tool_digital_out(1, True) 
+        set_standard_digital_out(0, True) 
         break
       end
       sleep(0.002)

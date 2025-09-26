@@ -104,53 +104,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
         log::info!(target: &&format!("r2r_ur_controller"), "Found templates.");
     }
 
-    // let base_in_world = SPTransformStamped {
-    //     active_transform: false,
-    //     child_frame_id: "base".to_string(),
-    //     parent_frame_id: "world".to_string(),
-    //     enable_transform: true,
-    //     time_stamp: SystemTime::now(),
-    //     transform: SPTransform::default(),
-    //     metadata: MapOrUnknown::UNKNOWN,
-    // };
-
-    // base_in_world.active = false;
-    // base_in_world.child_frame_id = "base".to_string();
-    // base_in_world.parent_frame_id = "world".to_string();
-
-    // let mut a_in_world = TransformStamped::default();
-    // a_in_world.active = false;
-    // a_in_world.child_frame_id = "a".to_string();
-    // a_in_world.parent_frame_id = "world".to_string();
-    // a_in_world.transform.translation.x = 0.6;
-
-    // let mut b_in_world = TransformStamped::default();
-    // b_in_world.active = false;
-    // b_in_world.child_frame_id = "b".to_string();
-    // b_in_world.parent_frame_id = "world".to_string();
-    // b_in_world.transform.translation.y = 0.6;
-
-    // let mut ghost_base_link_in_base = TransformStamped::default();
-    // ghost_base_link_in_base.active = false;
-    // ghost_base_link_in_base.child_frame_id = "ghost_base_link".to_string();
-    // ghost_base_link_in_base.parent_frame_id = "base".to_string();
-
-    // tx.send(StateManagement::InsertTransform((
-    //     base_in_world.child_frame_id.clone(),
-    //     base_in_world,
-    // )))
-    // .await
-    // .expect("failed");
-
-    // println!("local: {:?}", transform_buffer.get_local_transform_names());
-    // println!("global: {:?}", transform_buffer.get_global_transform_names());
 
     let arc_node_clone: Arc<Mutex<r2r::Node>> = arc_node.clone();
     let con_arc_clone = con_arc.clone();
     let robot_id_clone = robot_id.clone();
     let ur_address_clone = ur_address.clone();
     tokio::task::spawn(async move {
-        match action_client(&ur_address_clone, &robot_id_clone, "g1", arc_node_clone, &con_arc_clone, &templates).await {
+        match action_client(&ur_address_clone, &robot_id_clone, arc_node_clone, &con_arc_clone, &templates).await {
             Ok(()) => (),
             Err(e) => {
                 log::error!(target: &&format!("main robot runner"), "failed with: {}", e)

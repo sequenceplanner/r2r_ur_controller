@@ -110,17 +110,20 @@ pub struct RobotCommand {
     pub relative_pose: String, // use pose_to_string, relative to current TCP pose
     pub tcp_in_faceplate: String, // use pose_to_string
     pub force_threshold: f64,
+    // pub gripper_velocity: f64,
+    // pub gripper_force: f64,
+    // pub gripper_ref_pos_percentage: i64, 
     // pub gripper_position: i64 // open: 100, closed: 0, or anything inbetween
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct GripperCommand {
-    // open, close, move_to, set force, activate, etc...
-    pub command_type: String,
-    pub velocity: f64,
-    pub force: f64,
-    pub ref_pos_percentage: i64, // fully closed: 100, fully open 0, or anything inbetween
-}
+// #[derive(Debug, Serialize, Deserialize, Clone)]
+// pub struct GripperCommand {
+//     // open, close, move_to, set force, activate, etc...
+//     pub command_type: String,
+//     pub velocity: f64,
+//     pub force: f64,
+//     pub ref_pos_percentage: i64, // fully closed: 100, fully open 0, or anything inbetween
+// }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Payload {

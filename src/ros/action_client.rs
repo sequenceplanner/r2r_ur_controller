@@ -9,7 +9,7 @@ use std::{
 use futures::StreamExt;
 use micro_sp::*;
 use r2r::ur_script_msgs::action::ExecuteScript;
-use serde::{Deserialize, Serialize};
+// use serde::{Deserialize, Serialize};
 
 // use crate::core::structs::{transform_to_string, CommandType, Payload};
 use crate::*;
@@ -24,7 +24,7 @@ pub static DEFAULT_ROOT_FRAME_ID: &'static str = "world";
 pub async fn action_client(
     _ur_address: &str,
     robot_name: &str,
-    _gripper_id: &str,
+    // gripper_id: &str,
     arc_node: Arc<Mutex<r2r::Node>>,
     connection_manager: &Arc<ConnectionManager>,
     templates: &tera::Tera,
@@ -82,10 +82,10 @@ pub async fn action_client(
         format!("{}_use_relative_pose", robot_name),
         format!("{}_relative_pose", robot_name),
         format!("{}_force_feedback", robot_name),
-        // format!("{}_command_type", gripper_id),
-        // format!("{}_velocity", gripper_id),
-        // format!("{}_force", gripper_id),
-        // format!("{}_ref_pos_percentage", gripper_id),
+        format!("{}_reset_request_mechanism", robot_name),
+        // format!("{}_gripper_velocity", robot_name),
+        // format!("{}_gripper_force", robot_name),
+        // format!("{}_gripper_ref_pos_percentage", robot_name),
     ]
     .iter()
     .map(|k| k.to_string())
@@ -108,25 +108,36 @@ pub async fn action_client(
         let mut request_state = state
             .get_string_or_default_to_unknown(&format!("{robot_name}_request_state"), &log_target);
 
-        let mut force_feedback = state
-            .get_float_or_default_to_zero(&format!("{robot_name}_force_feedback"), &log_target);
+        // let mut reset_request_mechanism = state.get_bool_or_default_to_false(
+        //     &format!("{robot_name}_reset_request_mechanism"),
+        //     &log_target,
+        // );
+
+        // When starting the main runner after a fail or incomplete operation
+        // if reset_request_mechanism {
+        //     request_trigger = false;
+        //     request_state = ServiceRequestState::Initial.to_string();
+        //     reset_request_mechanism = false;
+        //     r2r::log_info!(
+        //         &format!("{}_ur_controller", robot_name),
+        //         "Reset request mechnanism triggered."
+        //     );
+        // }
+
+        // let force_feedback = state
+        //     .get_float_or_default_to_zero(&format!("{robot_name}_force_feedback"), &log_target);
 
         if request_trigger {
             request_trigger = false;
             if request_state == ActionRequestState::Initial.to_string() {
-                // let gripper_command_type = state.get_string_or_default_to_unknown(
-                //     &format!("{gripper_id}_command_type"),
-                //     &log_target,
-                // );
-
                 // let gripper_velocity =
-                //     state.get_float_or_value(&format!("{gripper_id}_velocity"), 1.0, &log_target);
+                //     state.get_float_or_value(&format!("{robot_name}_gripper_velocity"), 100.0, &log_target);
 
                 // let gripper_force =
-                //     state.get_float_or_value(&format!("{gripper_id}_force"), 1.0, &log_target);
+                //     state.get_float_or_value(&format!("{robot_name}_gripper_force"), 100.0, &log_target);
 
                 // let gripper_ref_pos_percentage = state.get_int_or_default_to_zero(
-                //     &format!("{gripper_id}_ref_pos_percentage"),
+                //     &format!("{robot_name}_gripper_ref_pos_percentage"),
                 //     &log_target,
                 // );
 
@@ -354,6 +365,9 @@ pub async fn action_client(
                     tcp_in_faceplate,
                     force_threshold,
                     relative_pose,
+                    // gripper_velocity,
+                    // gripper_force,
+                    // gripper_ref_pos_percentage,
                 };
 
                 let script = match generate_script(robot_name, robot_command, templates) {
@@ -387,49 +401,13 @@ pub async fn action_client(
                     }
                 };
 
-                // let connection_manager_clone = connection_manager.clone();
-                // tokio::spawn(async move {
-                //     while let Some(msg) = feedback.next().await {
-                //         println!("got feedback msg: {}", msg.feedback);
-                //         let json_string = &msg.feedback;
-
-                //         // Use `if let` for more concise pattern matching when you only handle the `Ok` case.
-                //         if let Ok(UrScriptFeedback::Force(force_data)) =
-                //             serde_json::from_str::<UrScriptFeedback>(json_string)
-                //         {
-                //             r2r::log_info!(
-                //                 "ur_controller", // The &format! is not needed for a string literal
-                //                 "Received Force Feedback: {}",
-                //                 force_data
-                //             );
-
-                //             // No more cloning inside the loop!
-                //             // `connection_manager` is already in scope.
-                //             let mut con = connection_manager_clone.get_connection().await;
-
-                //             // Assuming `force_feedback` is a variable that needs to be updated.
-                //             let force_feedback = force_data;
-
-                //             StateManager::set_sp_value(
-                //                 &mut con,
-                //                 "force_feedback",
-                //                 &force_feedback.to_spvalue(),
-                //             )
-                //             .await;
-                //         }
-                //         // The `Err` cases from `serde_json::from_str` and the `UrScriptFeedback` enum are implicitly ignored.
-                //     }
-                // });
-
+                // Feedback that we can use to get data directly from the robot
                 let connection_manager_clone = connection_manager.clone();
                 tokio::spawn(async move {
                     while let Some(msg) = feedback.next().await {
                         println!("got feedback msg: {}", msg.feedback);
                         let feedback_string = &msg.feedback;
-
-                        // Check if the string starts with "FORCE: "
                         if let Some(value_str) = feedback_string.strip_prefix("FORCE: ") {
-                            // If it does, parse the rest of the string into a f64
                             if let Ok(force_data) = value_str.trim().parse::<f64>() {
                                 r2r::log_info!(
                                     "ur_controller",
@@ -437,11 +415,7 @@ pub async fn action_client(
                                     force_data
                                 );
 
-                                // No more cloning inside the loop!
-                                // `connection_manager` is already in scope.
                                 let mut con = connection_manager_clone.get_connection().await;
-
-                                // The parsed f64 is now assigned to force_feedback
                                 let force_feedback = force_data;
 
                                 StateManager::set_sp_value(
@@ -501,13 +475,6 @@ pub async fn action_client(
     }
 }
 
-// fn send_gripper_script(host: &str, port: u16, script_content: &str) -> io::Result<u64> {
-//     let server_address = format!("{}:{}", host, port);
-//     let mut stream = TcpStream::connect(server_address)?;
-//     let mut reader = script_content.as_bytes();
-//     io::copy(&mut reader, &mut stream)
-// }
-
 fn generate_script(
     robot_name: &str,
     robot_command: RobotCommand,
@@ -545,34 +512,3 @@ fn generate_script(
         }
     }
 }
-
-// fn generate_gripper_script(
-//     gripper_command: GripperCommand,
-//     templates: &tera::Tera,
-//     log_target: &str,
-// ) -> Result<String, Box<dyn std::error::Error>> {
-//     let empty_context = tera::Context::new();
-//     match templates.render(
-//         &format!("{}.script", gripper_command.command_type.to_string()),
-//         match &tera::Context::from_serialize(gripper_command.clone()) {
-//             Ok(context) => context,
-//             Err(e) => {
-//                 log::error!(target: &log_target,
-//                     "Creating a Tera Context from a serialized interpretation failed with: {e}.");
-//                 log::error!(target: &log_target,
-//                     "An empty Tera Context will be used instead.");
-//                 &empty_context
-//             }
-//         },
-//     ) {
-//         Ok(script) => Ok(script),
-//         Err(e) => {
-//             log::error!(target: &log_target,
-//                 "Rendering the {}.script Tera Template failed with: {}.",
-//                 gripper_command.command_type,
-//                 e
-//             );
-//             return Err(Box::new(e));
-//         }
-//     }
-// }

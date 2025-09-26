@@ -23,7 +23,7 @@ def script():
   thread force_monitor_down_thread():
     while not move_done:
       forces = get_tcp_force()
-      if forces[2] < -{{ pnp_force_threshold }} or forces[2] > {{ pnp_force_threshold }}:
+      if forces[2] < -{{ force_threshold }} or forces[2] > {{ force_threshold }}:
         set_standard_digital_out(0, False) # Stop vacuum to release part
         force_detected = True
         break

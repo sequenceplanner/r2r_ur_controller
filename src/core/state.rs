@@ -44,8 +44,9 @@ pub fn generate_robot_interface_state(robot_name: &str) -> State {
     let estimated_position = v!(&&format!("{}_estimated_position", robot_name));
     let use_relative_pose = bv!(&&format!("{}_use_relative_pose", robot_name));
     let relative_pose = v!(&&format!("{}_relative_pose", robot_name));
-    let gripper_reference_position = iv!(&&format!("{}_gripper_reference_position", robot_name));
-    let gripper_estimated_position = iv!(&&format!("{}_gripper_estimated_position", robot_name));
+    let gripper_force = fv!(&&format!("{}_gripper_force", robot_name));
+    let gripper_velocity = fv!(&&format!("{}_gripper_velocity", robot_name));
+    let gripper_ref_pos_percentage = iv!(&&format!("{}_gripper_ref_pos_percentage", robot_name));
 
     let state = state.add(assign!(command_type, SPValue::String(StringOrUnknown::UNKNOWN)));
     let state = state.add(assign!(accelleration, SPValue::Float64(FloatOrUnknown::UNKNOWN)));
@@ -74,8 +75,10 @@ pub fn generate_robot_interface_state(robot_name: &str) -> State {
     let state = state.add(assign!(force_feedback, SPValue::Float64(FloatOrUnknown::UNKNOWN)));
     let state = state.add(assign!(use_relative_pose, SPValue::Bool(BoolOrUnknown::UNKNOWN)));
     let state = state.add(assign!(relative_pose, SPValue::String(StringOrUnknown::UNKNOWN)));
-    let state = state.add(assign!(gripper_reference_position, SPValue::Int64(IntOrUnknown::UNKNOWN)));
-    let state = state.add(assign!(gripper_estimated_position, SPValue::Int64(IntOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(gripper_force, SPValue::Float64(FloatOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(gripper_velocity, SPValue::Float64(FloatOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(gripper_ref_pos_percentage, SPValue::Int64(IntOrUnknown::UNKNOWN)));
+
 
     state
 }

@@ -74,7 +74,7 @@ pub fn generate_robot_interface_state(robot_name: &str) -> State {
     let state = state.add(assign!(force_threshold, SPValue::Float64(FloatOrUnknown::UNKNOWN)));
     let state = state.add(assign!(force_feedback, SPValue::Float64(FloatOrUnknown::UNKNOWN)));
     let state = state.add(assign!(use_relative_pose, SPValue::Bool(BoolOrUnknown::UNKNOWN)));
-    let state = state.add(assign!(relative_pose, SPValue::String(StringOrUnknown::UNKNOWN)));
+    let state = state.add(assign!(relative_pose, SPValue::Array(ArrayOrUnknown::UNKNOWN)));
     let state = state.add(assign!(gripper_force, SPValue::Float64(FloatOrUnknown::UNKNOWN)));
     let state = state.add(assign!(gripper_velocity, SPValue::Float64(FloatOrUnknown::UNKNOWN)));
     let state = state.add(assign!(gripper_ref_pos_percentage, SPValue::Int64(IntOrUnknown::UNKNOWN)));
